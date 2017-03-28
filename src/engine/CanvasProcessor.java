@@ -289,7 +289,7 @@ public class CanvasProcessor
 				
 		double aMass = a.getMass();
 		double bMass = b.getMass();
-	    double aNormalScaleFactor = aVector.dot(unitNormalVector);
+		double aNormalScaleFactor = aVector.dot(unitNormalVector);
 		double bNormalScaleFactor = bVector.dot(unitNormalVector);
 		
 		Vector2d newVectorForA = new Vector2d(unitTangentVector);

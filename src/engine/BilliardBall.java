@@ -26,7 +26,7 @@ public class BilliardBall extends CanvasObject
 	}
 
 	/**
-	 * Clone billiard ball
+	 * Initialize from existing ball
 	 * @param src BilliardBall
 	 */
 	public BilliardBall(BilliardBall src) {
