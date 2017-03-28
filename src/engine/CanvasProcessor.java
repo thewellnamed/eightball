@@ -28,10 +28,10 @@ public class CanvasProcessor
 	private HashMap<Integer, Integer> lastCollision;
 	
 	// collision processing
-	private final int MAX_COLLISION_PASSES = 5;
-	private final double COR_BALL_COLLISIONS = 0.965; // coefficient of restitution: ball<-->ball
-	private final double COR_WALL_COLLISIONS = 0.74;  // coefficient of restitution: ball-->rail
-	private final double COEFFICIENT_FRICTION = 0.98; // coefficient of friction: rolling ball
+	private static final int MAX_COLLISION_PASSES = 5;
+	private static final double COR_BALL_COLLISIONS = 0.965; // coefficient of restitution: ball<-->ball
+	private static final double COR_WALL_COLLISIONS = 0.74;  // coefficient of restitution: ball-->rail
+	private static final double COEFFICIENT_FRICTION = 0.98; // coefficient of friction: rolling ball
 	
 	/**
 	 * Construct a new collision processor
@@ -64,11 +64,10 @@ public class CanvasProcessor
 	 * Determine grid for collision management
 	 */
 	private void initalizeCollisionGrid() {
-		
 		double canvasArea = canvasSize.height * canvasSize.width;
 		double objectArea = maxObjectSize.height * maxObjectSize.width;
-		int spriteCount = canvas.getObjects().size();
-		int canvasDensityFactor = (int)Math.floor(Math.sqrt(canvasArea / (objectArea * spriteCount))) + 1;
+		int objectCount = canvas.getObjects().size();
+		int canvasDensityFactor = (int)Math.floor(Math.sqrt(canvasArea / (objectArea * objectCount))) + 1;
 		
 		numRows = (int)Math.ceil(canvasSize.height / (maxObjectSize.height * canvasDensityFactor));
 		numCols = (int)Math.ceil(canvasSize.width / (maxObjectSize.width * canvasDensityFactor));
@@ -82,7 +81,7 @@ public class CanvasProcessor
 	}
 	
 	/**
-	 * Main processing method -- process collisions and update sprite states
+	 * Main processing method -- process collisions and update CanvasObject states
 	 */
 	public void update() {
 		Collection<CanvasObject> objects = canvas.getObjects();
@@ -91,14 +90,19 @@ public class CanvasProcessor
 		lastCollision.clear();
 		HashSet<Integer> collisions = new HashSet<Integer>();
 		
+		// iterate processor up to MAX_COLLISION_PASSES times as long
+		// as the last pass found a collision.
+		// This reduces overlap problems caused when multiple objects are all colliding
 		do {
 			clearCollisionNodes();
 			collisions.clear();
 			pass++;
 			
-			// Sprite collisions
+			// CanvasObject collisions
+			// first, add to collision grid...
 			objects.forEach(o -> addObjectToCollisionGrid(o));
 
+			// second, check collisions within each grid cell
 			for (int i = 0; i < maxRegions; i++) {
 				CollisionNode node = nodes.get(i);
 				int size = node.size();
@@ -119,7 +123,7 @@ public class CanvasProcessor
 				}
 			}
 				
-			// Check for wall collisions and move each sprite
+			// Check for wall collisions
 			for (CanvasObject o : objects) {
 				Point2D desired = o.getNextLocation();
 				Dimension size = o.getSize();
@@ -169,14 +173,15 @@ public class CanvasProcessor
 	}	
 	
 	/*
-	 * Add sprite to collision grid
-	 * May add a single sprite to up to four grid locations if it spans multiple nodes
+	 * Add object to collision grid
+	 * May add a single object to up to four grid locations if it spans multiple nodes
 	 */
 	private void addObjectToCollisionGrid(CanvasObject o) {
 		Dimension objSize = o.getSize();
 		Point2D objPosition = o.getNextLocation();
 		
 		// Todo: move this hack elsewhere?
+		// This may not be needed any longer
 		if (objPosition.getX() < 0) objPosition.setLocation(0, objPosition.getY());
 		if (objPosition.getY() < 0) objPosition.setLocation(objPosition.getX(), 0);
 		
@@ -205,8 +210,7 @@ public class CanvasProcessor
 		int row = (int)(Math.floor((location.getY() / canvasSize.getHeight()) * numRows)); 
 		int col = (int)(Math.floor((location.getX() / canvasSize.getWidth()) * numCols));
 		
-		// bit of a hack for boundary conditions when regionWidth or regionHeight don't cleanly divide the canvas...
-		// there's probably a better way to manage this.
+		// bit of a hack for rounding error when regionWidth or regionHeight don't cleanly divide the canvas...
 		if (col * regionWidth > location.getX()) col--;
 		if (row * regionHeight > location.getY()) row--;
 		
@@ -253,7 +257,6 @@ public class CanvasProcessor
 		
 		// pending collision
 		if (collisionPending(a, b) && (!lastCollision.containsKey(aHash) || lastCollision.get(aHash) != bHash)) {	
-			// collision
 			collide(a, b);
 
 			lastCollision.put(aHash, bHash);
@@ -363,7 +366,7 @@ public class CanvasProcessor
 	 * Clear collision grid
 	 */
 	private void clearCollisionNodes() {
-		nodes.values().forEach(sprites -> sprites.clear());
+		nodes.values().forEach(node -> node.clear());
 	}
 	
 	/*
