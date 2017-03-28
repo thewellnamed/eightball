@@ -7,11 +7,8 @@ import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 
-import javax.vecmath.Vector2d;
-
 /**
- * Ball implementation of Sprite
- * @author Matthew Kauffman
+ * Billiard Ball implementation 
  */
 public class BilliardBall extends CanvasObject
 {	
@@ -28,10 +25,17 @@ public class BilliardBall extends CanvasObject
 		setSize(new Dimension(30, 30));
 	}
 
+	/**
+	 * Clone billiard ball
+	 * @param src BilliardBall
+	 */
 	public BilliardBall(BilliardBall src) {
 		super(src);
 	}
 	
+	/**
+	 * Get Area object representing ball
+	 */
 	@Override
 	public Area getArea() {
 		Rectangle2D bounds = getBounds();
@@ -39,25 +43,12 @@ public class BilliardBall extends CanvasObject
 	}
 	
 	/**
-	 * Builds a more complex representation of the Area of the Sprite for collision detection
+	 * Get Area object at next position
 	 */
 	@Override
 	public Area getAreaForCollision() {
 		Rectangle2D bounds = getNextBounds();
 		return new Area(new Ellipse2D.Double(bounds.getX()-1, bounds.getY()-1, bounds.getWidth()+2, bounds.getHeight()+2));
-	}
-		
-	/**
-	 * Update ball position. Apply friction
-	 */
-	public void move() {
-		Vector2d mv = getMovementVector();
-		if (mv.length() > 0.25) {
-			super.move();
-			getMovementVector().scale(0.99);
-		} else {
-			setMovementVector(new Vector2d(0, 0));
-		}
 	}
 	
 	/** 
@@ -68,13 +59,16 @@ public class BilliardBall extends CanvasObject
 		return new BilliardBall(this);
 	}
 	
+	/**
+	 * String representation of BilliardBall
+	 */
 	@Override
 	public String toString() {
-		return String.format("Ball(%d)", id);
+		return String.format("BilliardBall(%d)", id);
 	}
 	
 	/**
-	 * Draw a ball
+	 * Render
 	 */
 	@Override
 	public void draw(Graphics2D g) {

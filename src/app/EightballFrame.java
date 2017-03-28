@@ -10,8 +10,7 @@ import javax.swing.JPanel;
 import game.Game;
 
 /**
- * Frame containing a SpriteCanvas
- * @author Matthew Kauffman
+ * Main Game UI
  */
 @SuppressWarnings("serial")
 public class EightballFrame extends JFrame 
@@ -23,7 +22,7 @@ public class EightballFrame extends JFrame
 	 * Constructor
 	 */
 	public EightballFrame() {
-		setSize(800, 400);
+		setSize(800, 500);
 		setResizable(false);
 		setLayout(new BorderLayout());
 		

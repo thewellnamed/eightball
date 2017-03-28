@@ -7,24 +7,36 @@ import javax.vecmath.Vector2d;
 
 import engine.*;
 
+/**
+ * Track Eightball game state, manage canvas and player actions
+ */
 public class Game {
 	private Canvas canvas;
 	
+	/**
+	 * Create a new game
+	 */
 	public Game() {
 		initializeCanvas();
 	}
 	
+	/*
+	 * Create Canvas
+	 */
 	private void initializeCanvas() {
 		canvas = new Canvas();
-		canvas.setSize(new Dimension(800, 300));
+		canvas.setSize(new Dimension(800, 400));
 		canvas.setAnimationDelay(30);
 		
 		initializeTable();
 	}
 	
+	/*
+	 * Place billiards in initial states
+	 */
 	private void initializeTable() {
-		int baseX = 640;
-		int baseY = 125;
+		int baseX = 560;
+		int baseY = 150;
 		int[] offsetX = { 0, 31, 31, 62, 62, 62, 93, 93, 93, 93, 124, 124, 124, 124, 124};
 		int[] offsetY = { 60, 44, 75, 29, 60, 91, 14, 45, 76, 107, 0, 31, 62, 93, 124 };
 		
@@ -35,11 +47,15 @@ public class Game {
 		}
 		
 		CanvasObject cue = new BilliardBall(0);
-		cue.setLocation(new Point2D.Double(150, 185));
-		cue.setMovementVector(new Vector2d(24, 0));
+		cue.setLocation(new Point2D.Double(150, 205));
+		cue.setMovementVector(new Vector2d(32, 0));
 		canvas.add(cue);
 	}
 	
+	/**
+	 * Get Canvas for Game
+	 * @return Canvas
+	 */
 	public Canvas getCanvas() {
 		return canvas;
 	}
@@ -54,5 +70,6 @@ public class Game {
 	
 	public void clear() {
 		canvas.clear();
+		initializeTable();
 	}
 }

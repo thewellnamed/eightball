@@ -27,7 +27,11 @@ public class CanvasProcessor
 	private HashMap<Integer, CollisionNode> nodes;
 	private HashMap<Integer, Integer> lastCollision;
 	
+	// collision processing
 	private final int MAX_COLLISION_PASSES = 5;
+	private final double COR_BALL_COLLISIONS = 0.965; // coefficient of restitution: ball<-->ball
+	private final double COR_WALL_COLLISIONS = 0.74;  // coefficient of restitution: ball-->rail
+	private final double COEFFICIENT_FRICTION = 0.98; // coefficient of friction: rolling ball
 	
 	/**
 	 * Construct a new collision processor
@@ -80,7 +84,7 @@ public class CanvasProcessor
 	/**
 	 * Main processing method -- process collisions and update sprite states
 	 */
-	public void processCollisions() {
+	public void update() {
 		Collection<CanvasObject> objects = canvas.getObjects();
 		int pass = 0;
 		boolean haveCollision = false;		
@@ -149,6 +153,19 @@ public class CanvasProcessor
 				}
 			}			
 		} while (haveCollision && pass < MAX_COLLISION_PASSES);
+		
+		for (CanvasObject o : objects) {
+			// move each object
+			o.move();
+			
+			// apply friction
+			Vector2d mv = o.getMovementVector();
+			if (mv.length() > 0.25) {
+				mv.scale(COEFFICIENT_FRICTION);
+			} else {
+				o.setMovementVector(new Vector2d(0, 0));
+			}
+		}
 	}	
 	
 	/*
@@ -182,7 +199,7 @@ public class CanvasProcessor
 	}	
 	
 	/*
-	 * Add sprite point (E, N, W, S) to grid node
+	 * Add collision point (E, N, W, S) to grid node
 	 */
 	private void addCollisionPointToGrid(CanvasObject o, Point2D location) {
 		int row = (int)(Math.floor((location.getY() / canvasSize.getHeight()) * numRows)); 
@@ -214,7 +231,8 @@ public class CanvasProcessor
 	}
 	
 	/*
-	 * Handle collision between two sprites
+	 * Check for collision between two CanvasObjects
+	 * Calls collide() if collision found
 	 */
 	private boolean checkAndProcessCollision(CanvasObject a, CanvasObject b) {
 		boolean haveCollision = false;
@@ -247,7 +265,7 @@ public class CanvasProcessor
 	}
 	
 	/*
-	 * Check for a collision between objects at next position
+	 * Is a collision pending?
 	 */
 	private boolean collisionPending(CanvasObject a, CanvasObject b) {
 		Area intersection = a.getAreaForCollision();
@@ -256,6 +274,9 @@ public class CanvasProcessor
 		return !intersection.isEmpty();
 	}
 	
+	/*
+	 * Perform collision between two objects
+	 */
 	private void collide(CanvasObject a, CanvasObject b) {
 		// logic can be found here: http://vobarian.com/collisions/2dcollisions2.pdf
 		Vector2d unitNormalVector = getNormalizedCollisionVector(a, b);
@@ -274,32 +295,33 @@ public class CanvasProcessor
 		newVectorForA.scale(aVector.dot(unitTangentVector));
 		newVectorForB.scale(bVector.dot(unitTangentVector));
 		
-		// scaling factor in the form for inelastic collisions: https://en.wikipedia.org/wiki/Inelastic_collision
-		// CoR == 0.95
-		
+		// scaling factor in the form for inelastic collisions: https://en.wikipedia.org/wiki/Inelastic_collision		
 		Vector2d aNorm = new Vector2d(unitNormalVector);			
-		aNorm.scale(((bMass * (bNormalScaleFactor - aNormalScaleFactor)) + 
+		aNorm.scale(((bMass * COR_BALL_COLLISIONS * (bNormalScaleFactor - aNormalScaleFactor)) + 
 				                (aMass * aNormalScaleFactor) + (bMass * bNormalScaleFactor)) / (aMass + bMass));
 		newVectorForA.add(aNorm);
 		a.setMovementVector(newVectorForA);
 		
 		Vector2d bNorm = new Vector2d(unitNormalVector);			
-		bNorm.scale(((aMass * 0.97 * (aNormalScaleFactor - bNormalScaleFactor)) + 
+		bNorm.scale(((aMass * COR_BALL_COLLISIONS * (aNormalScaleFactor - bNormalScaleFactor)) + 
 				                (bMass * bNormalScaleFactor) + (aMass * aNormalScaleFactor)) / (aMass + bMass));
 		newVectorForB.add(bNorm);
 		b.setMovementVector(newVectorForB);
 	}
 	
+	/*
+	 * Perform collision between object and side-wall
+	 */
 	private void collide(CanvasObject o, int wall) {
 		switch (wall) {
 			case Canvas.WALL_EAST:
 			case Canvas.WALL_WEST:
-				o.getMovementVector().x *= -0.83;
+				o.getMovementVector().x *= -COR_WALL_COLLISIONS;
 				break;
 				
 			case Canvas.WALL_NORTH:
 			case Canvas.WALL_SOUTH:
-				o.getMovementVector().y *= -0.83;
+				o.getMovementVector().y *= -COR_WALL_COLLISIONS;
 				break;
 				
 			default:
@@ -307,6 +329,9 @@ public class CanvasProcessor
 		}
 	}
 	
+	/*
+	 * Return unit normal vector to a collision between objects (using center-of-mass defined per object)
+	 */
 	private Vector2d getNormalizedCollisionVector(CanvasObject a, CanvasObject b) {
 		Point2D aCenter = a.getNextCenterPoint();
 		Point2D bCenter = b.getNextCenterPoint();
@@ -316,6 +341,9 @@ public class CanvasProcessor
 		return normalVector;
 	}
 	
+	/*
+	 * Fix overlap between objects
+	 */
 	private void deformCollision(CanvasObject a, CanvasObject b, Rectangle2D intersection) {
 		Rectangle2D aPos = a.getBounds();
 		Rectangle2D bPos = b.getBounds();

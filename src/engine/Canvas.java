@@ -11,7 +11,6 @@ import javax.swing.Timer;
 
 /**
  * Canvas for rendering Billiard Table
- * @author Matthew Kauffman
  */
 @SuppressWarnings("serial")
 public class Canvas extends JComponent
@@ -78,7 +77,7 @@ public class Canvas extends JComponent
 		if (animationTimer != null) {
 			animationTimer.setDelay(animationDelay);
 		} else {
-			animationTimer = new Timer(animationDelay, ae -> updateSprites());
+			animationTimer = new Timer(animationDelay, ae -> update());
 		}
 	}
 	
@@ -136,10 +135,8 @@ public class Canvas extends JComponent
 	/**
 	 * Main animation timer callback
 	 */
-	private void updateSprites() {
-		processor.processCollisions();
-		objects.forEach(o -> o.move());
-		
+	private void update() {
+		processor.update();
 		repaint();
 	}
 }

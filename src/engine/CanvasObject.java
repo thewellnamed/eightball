@@ -9,9 +9,8 @@ import java.awt.geom.Rectangle2D;
 import javax.vecmath.Vector2d;
 
 /**
- * Base class for objects renderable in Canvas
+ * Base class for objects which can be rendered in Canvas
  * Manages the position, linear movement, and rendering of each canvas object
- * @author Matthew Kauffman
  */
 public abstract class CanvasObject
 {
@@ -20,6 +19,9 @@ public abstract class CanvasObject
 	private double mass;
 	private Color color;
 	
+	/**
+	 * Default constructor
+	 */
 	public CanvasObject() {
 		bounds = new Rectangle2D.Double(0,  0,  0,  0);
 		movementVector = new Vector2d(0, 0);
@@ -39,17 +41,7 @@ public abstract class CanvasObject
 	}
 	
 	/**
-	 * Initialize sprite to specified position and vector
-	 * @param initialPosition X,Y coordinates of initial position
-	 * @param vector X,Y magnitudes of motion per move
-	 */
-	public void initialize(Point2D initialPosition, Vector2d vector) {
-		bounds = new Rectangle2D.Double(initialPosition.getX(), initialPosition.getY(), bounds.getWidth(), bounds.getHeight());
-		movementVector = vector;
-	}
-	
-	/**
-	 * @return Point containing x,y coordinates of sprite in canvas
+	 * @return Point containing x,y coordinates of object in canvas
 	 */
 	public Point2D getLocation() {
 		return new Point2D.Double(bounds.x, bounds.y);
@@ -72,16 +64,16 @@ public abstract class CanvasObject
 	}
 		
 	/**
-	 * Get sprite size
-	 * @return Dimension(width, height) of sprite
+	 * Get object size
+	 * @return Dimension(width, height) of object
 	 */
 	public Dimension getSize() {
 		return bounds.getBounds().getSize();
 	}	
 	
 	/**
-	 * Set sprite size
-	 * @param newSize New Dimension(width, height) of sprite
+	 * Set object size
+	 * @param newSize New Dimension(width, height) of object
 	 */
 	public void setSize(Dimension newSize) {
 		bounds.width = newSize.getWidth();
@@ -122,7 +114,7 @@ public abstract class CanvasObject
 	}
 
 	/**
-	 * Get Rectangle representing current bounds of sprite
+	 * Get Rectangle representing current bounds of object
 	 * @return Rectangle coordinates (x,y,width,height)
 	 */
 	public Rectangle2D.Double getBounds() {		
@@ -171,14 +163,14 @@ public abstract class CanvasObject
 	}
 	
 	/**
-	 * @return Sprite Color
+	 * @return Object Color
 	 */
 	public Color getColor() {
 		return color;
 	}
 	
 	/**
-	 * Set sprite color
+	 * Set object color
 	 * @param c New color
 	 */
 	public void setColor(Color c) {
@@ -186,16 +178,16 @@ public abstract class CanvasObject
 	}	
 	
 	/**
-	 * Update sprite position using current position and movement vector
+	 * Incrementally update position based on movement vector
 	 */
 	public void move() {
 		bounds = getNextBounds();
 	}
 	
 	/**
-	 * Check for intersection with other sprite in canvas
-	 * Default uses bounding rectangle of both sprites
-	 * @param s Sprite
+	 * Check for intersection with other object in canvas
+	 * Default uses bounding rectangle of both objects
+	 * @param s CanvasObject to check intersection with
 	 * @return
 	 */
 	public Area getOverlapWith(CanvasObject o) {
@@ -205,12 +197,12 @@ public abstract class CanvasObject
 	}
 		
 	/**
-	 * Clone a sprite
+	 * Clone a CanvasObject
 	 */
 	public abstract CanvasObject clone();
 	
 	/**
-	 * Abstract method to draw sprite
+	 * Abstract method to draw object in Canvas
 	 * @param g Graphics object on which to draw
 	 */
 	public abstract void draw(Graphics2D g);
@@ -220,6 +212,6 @@ public abstract class CanvasObject
 	 */
 	@Override
 	public String toString() {
-		return String.format("Sprite(%d)", hashCode());
+		return String.format("CanvasObject(%d)", hashCode());
 	}
 }
