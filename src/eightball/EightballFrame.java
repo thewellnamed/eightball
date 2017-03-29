@@ -1,4 +1,4 @@
-package app;
+package eightball;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
@@ -6,8 +6,6 @@ import java.awt.GridLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-
-import game.Game;
 
 /**
  * Main Game UI
@@ -22,14 +20,14 @@ public class EightballFrame extends JFrame
 	 * Constructor
 	 */
 	public EightballFrame() {
-		setSize(800, 500);
+		setSize(900, 625);
 		setResizable(false);
 		setLayout(new BorderLayout());
 		
 		createControlPanel();
 		
 		game = new Game();
-		add(game.getCanvas(), BorderLayout.CENTER);
+		add(game.getTable(), BorderLayout.CENTER);
 	}
 	
 	/*

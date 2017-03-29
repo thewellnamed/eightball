@@ -1,10 +1,10 @@
-package engine;
+package canvas;
 
-import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.util.ArrayList;
+import java.awt.Rectangle;
 import java.util.Collection;
+import java.util.HashSet;
 
 import javax.swing.JComponent;
 import javax.swing.Timer;
@@ -15,10 +15,11 @@ import javax.swing.Timer;
 @SuppressWarnings("serial")
 public class Canvas extends JComponent
 {
-	private ArrayList<CanvasObject> objects;
+	protected HashSet<CanvasObject> objects;
+	protected CanvasProcessor processor;
+	protected Rectangle canvasBounds;
 	private Timer animationTimer;
 	private int animationDelay;
-	private CanvasProcessor processor;
 	
 	public static final int WALL_NORTH = 1;
 	public static final int WALL_EAST = 2;
@@ -28,8 +29,10 @@ public class Canvas extends JComponent
 	/**
 	 * Constructor
 	 */
-	public Canvas() {
-		objects = new ArrayList<CanvasObject>();
+	public Canvas(CanvasProcessor proc) {
+		objects = new HashSet<CanvasObject>();
+		processor = proc;
+		canvasBounds = getBounds();
 	}
 		
 	/**
@@ -64,7 +67,37 @@ public class Canvas extends JComponent
 			animationTimer.stop();
 		
 		objects.clear();
-		repaint();
+		repaint(canvasBounds);
+	}
+	
+	/**
+	 * @return CanvasProcessor
+	 */
+	public CanvasProcessor getProcessor() {
+		return processor;
+	}
+	
+	/**
+	 * Set CanvasProcessor for Canvas
+	 * @param proc New Processor
+	 */
+	public void setProcessor(CanvasProcessor proc) {
+		processor = proc;
+	}
+	
+	/**
+	 * @return Bounds of renderable part of canvas
+	 */
+	public Rectangle getCanvasBounds() {
+		return canvasBounds;
+	}
+	
+	/**
+	 * Set bounds of managed part of canvas
+	 * @param bounds New bounds
+	 */
+	public void setCanvasBounds(Rectangle bounds) {
+		canvasBounds = bounds;
 	}
 	
 	/**
@@ -85,10 +118,6 @@ public class Canvas extends JComponent
 	 * Start animating
 	 */
 	public void start() {
-		if (processor == null) {
-			processor = new CanvasProcessor(this);
-		}
-		
 		if (!animationTimer.isRunning())
 			animationTimer.start();
 	}
@@ -107,22 +136,6 @@ public class Canvas extends JComponent
 	public boolean isRunning() {
 		return animationTimer.isRunning();
 	}
-	
-	/**
-	 * @return largest sprite size
-	 */
-	public Dimension getMaxObjectSize() {
-		Dimension d = new Dimension(0,0);
-		
-		for (CanvasObject o : objects) {
-			Dimension size = o.getSize();
-			if (size.width * size.height > d.width*d.height) {
-				d.setSize(size);
-			}
-		}
-		
-		return d;
-	}
 		
 	/**
 	 * Draw canvas and render all objects
@@ -135,8 +148,8 @@ public class Canvas extends JComponent
 	/**
 	 * Main animation timer callback
 	 */
-	private void update() {
-		processor.update();
-		repaint();
+	protected void update() {
+		processor.update(objects);
+		repaint(canvasBounds);
 	}
 }

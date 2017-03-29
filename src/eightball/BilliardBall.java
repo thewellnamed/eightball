@@ -1,4 +1,4 @@
-package engine;
+package eightball;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -6,6 +6,9 @@ import java.awt.Graphics2D;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
+
+import canvas.CanvasObject;
+
 
 /**
  * Billiard Ball implementation 
@@ -22,7 +25,7 @@ public class BilliardBall extends CanvasObject
 		id = number;
 		
 		// basic ball characteristics
-		setSize(new Dimension(30, 30));
+		setSize(new Dimension(25, 25));
 	}
 
 	/**

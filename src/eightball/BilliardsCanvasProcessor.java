@@ -1,6 +1,7 @@
-package engine;
+package eightball;
 
 import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -10,20 +11,22 @@ import java.util.HashSet;
 
 import javax.vecmath.Vector2d;
 
+import canvas.*;
+
 /**
  * Movement and Collision Processing for CanvasObjects in Canvas
  */
 @SuppressWarnings("serial")
-public class CanvasProcessor 
+public class BilliardsCanvasProcessor implements CanvasProcessor
 {
 	private int numRows;
 	private int numCols;
 	private int maxRegions;
 	private double regionWidth;
 	private double regionHeight;
-	private Canvas canvas;
-	private Dimension canvasSize;
-	private Dimension maxObjectSize;
+	private Rectangle canvas;
+	private Dimension objectSize;
+	private int expectedObjectCount;
 	private HashMap<Integer, CollisionNode> nodes;
 	private HashMap<Integer, Integer> lastCollision;
 	
@@ -33,17 +36,12 @@ public class CanvasProcessor
 	private static final double COR_WALL_COLLISIONS = 0.74;  // coefficient of restitution: ball-->rail
 	private static final double COEFFICIENT_FRICTION = 0.98; // coefficient of friction: rolling ball
 	
-	/**
-	 * Construct a new collision processor
-	 * @param canvas Canvas for which to process collisions
-	 */
-	public CanvasProcessor(Canvas canvasForProcessing) {
-		canvas = canvasForProcessing;
-		canvasSize = canvas.getSize();
-		maxObjectSize = canvas.getMaxObjectSize();
-
-		// determine collision grid rows and columns
-		initalizeCollisionGrid();
+	public boolean initialize(Rectangle bounds, Dimension objSize, int objCount) {
+		canvas = bounds;
+		objectSize = objSize;
+		expectedObjectCount = objCount;
+		
+		initializeCollisionGrid();
 		
 		nodes = new HashMap<Integer, CollisionNode>(maxRegions);
 		lastCollision = new HashMap<Integer, Integer>(100);
@@ -51,40 +49,40 @@ public class CanvasProcessor
 		int nextRegion = 0;
 		for (int i = 0; i < numRows; i++) {
 			for (int j = 0; j < numCols; j++) {
-				double regionX = regionWidth * j;
-				double regionY = regionHeight * i;	
+				double regionX = canvas.x + (regionWidth * j);
+				double regionY = canvas.y + (regionHeight * i);	
 		
 				Rectangle2D rect = new Rectangle2D.Double(regionX, regionY, regionWidth, regionHeight);
 				nodes.put(nextRegion++, new CollisionNode(rect));
 			}
-		}	
+		}
+		
+		return true;
 	}
 	
 	/*
 	 * Determine grid for collision management
 	 */
-	private void initalizeCollisionGrid() {
-		double canvasArea = canvasSize.height * canvasSize.width;
-		double objectArea = maxObjectSize.height * maxObjectSize.width;
-		int objectCount = canvas.getObjects().size();
-		int canvasDensityFactor = (int)Math.floor(Math.sqrt(canvasArea / (objectArea * objectCount))) + 1;
+	private void initializeCollisionGrid() {
+		double canvasArea = canvas.getHeight() * canvas.getWidth();
+		double objectArea = objectSize.height * objectSize.width;
+		int canvasDensityFactor = (int)Math.floor(Math.sqrt(canvasArea / (objectArea *expectedObjectCount))) + 1;
 		
-		numRows = (int)Math.ceil(canvasSize.height / (maxObjectSize.height * canvasDensityFactor));
-		numCols = (int)Math.ceil(canvasSize.width / (maxObjectSize.width * canvasDensityFactor));
+		numRows = (int)Math.ceil(canvas.getHeight() / (objectSize.height * canvasDensityFactor));
+		numCols = (int)Math.ceil(canvas.getWidth() / (objectSize.width * canvasDensityFactor));
 		
 		if (numRows < 1) numRows = 1;
 		if (numCols < 1) numCols = 1;
 		
 		maxRegions = (numRows * numCols);
-		regionWidth = canvasSize.getWidth() / numCols;
-		regionHeight = canvasSize.getHeight() / numRows;
+		regionWidth = canvas.getWidth() / numCols;
+		regionHeight = canvas.getHeight() / numRows;
 	}
 	
 	/**
 	 * Main processing method -- process collisions and update CanvasObject states
 	 */
-	public void update() {
-		Collection<CanvasObject> objects = canvas.getObjects();
+	public boolean update(Collection<CanvasObject> objects) {
 		int pass = 0;
 		boolean haveCollision = false;		
 		lastCollision.clear();
@@ -128,8 +126,8 @@ public class CanvasProcessor
 				Point2D desired = o.getNextLocation();
 				Dimension size = o.getSize();
 				
-				int maxWidth = canvasSize.width - 1;
-				int maxHeight = canvasSize.height - 1;
+				int maxWidth = canvas.x + canvas.width - 1;
+				int maxHeight = canvas.y + canvas.height - 1;
 
 				// check for wall collisions
 				if (desired.getX() > maxWidth - size.width) {
@@ -137,7 +135,7 @@ public class CanvasProcessor
 					collisions.add(o.hashCode());
 					lastCollision.put(o.hashCode(), Canvas.WALL_EAST);
 					haveCollision = true;
-				} else if (desired.getX() < 0) {
+				} else if (desired.getX() < canvas.x) {
 					collide(o, Canvas.WALL_WEST);
 					collisions.add(o.hashCode());
 					lastCollision.put(o.hashCode(), Canvas.WALL_WEST);
@@ -149,7 +147,7 @@ public class CanvasProcessor
 					collisions.add(o.hashCode());
 					lastCollision.put(o.hashCode(), Canvas.WALL_SOUTH);
 					haveCollision = true;
-				} else if (desired.getY() < 0) {
+				} else if (desired.getY() < canvas.y) {
 					collide(o, Canvas.WALL_NORTH);
 					collisions.add(o.hashCode());
 					lastCollision.put(o.hashCode(), Canvas.WALL_NORTH);
@@ -170,6 +168,8 @@ public class CanvasProcessor
 				o.setMovementVector(new Vector2d(0, 0));
 			}
 		}
+		
+		return true;
 	}	
 	
 	/*
@@ -182,24 +182,27 @@ public class CanvasProcessor
 		
 		// Todo: move this hack elsewhere?
 		// This may not be needed any longer
-		if (objPosition.getX() < 0) objPosition.setLocation(0, objPosition.getY());
-		if (objPosition.getY() < 0) objPosition.setLocation(objPosition.getX(), 0);
+		if (objPosition.getX() < canvas.x) objPosition.setLocation(canvas.x, objPosition.getY());
+		if (objPosition.getY() < canvas.y) objPosition.setLocation(objPosition.getX(), canvas.y);
+		
+		int maxX = canvas.x + canvas.width - 1;
+		int maxY = canvas.y + canvas.height - 1;
 		
 		// calculate North, South, East, and West edges of Sprite, add to applicable collision regions
-		Point2D north = new Point2D.Double(Math.min(objPosition.getX() + objSize.width/2, canvasSize.width - 1), 
-										   Math.min(objPosition.getY(), canvasSize.height - 1));
+		Point2D north = new Point2D.Double(Math.min(objPosition.getX() + objSize.width/2, maxX), 
+										   Math.min(objPosition.getY(), maxY));
 		addCollisionPointToGrid(o, north);
 		
-		Point2D east = new Point2D.Double(Math.min(objPosition.getX() + objSize.width, canvasSize.width - 1), 
-										  Math.min(objPosition.getY() + objSize.height/2, canvasSize.height - 1));
+		Point2D east = new Point2D.Double(Math.min(objPosition.getX() + objSize.width, maxY), 
+										  Math.min(objPosition.getY() + objSize.height/2, maxY));
 		addCollisionPointToGrid(o, east);
 		
-		Point2D south = new Point2D.Double(Math.min(objPosition.getX() + objSize.width/2, canvasSize.width - 1), 
-										   Math.min(objPosition.getY() + objSize.width, canvasSize.height - 1));
+		Point2D south = new Point2D.Double(Math.min(objPosition.getX() + objSize.width/2, maxX), 
+										   Math.min(objPosition.getY() + objSize.width, maxY));
 		addCollisionPointToGrid(o, south);
 		
-		Point2D west = new Point2D.Double(Math.min(objPosition.getX(), canvasSize.width - 1), 
-										 Math.min(objPosition.getY() + objSize.height/2, canvasSize.height - 1));
+		Point2D west = new Point2D.Double(Math.min(objPosition.getX(), maxX), 
+										 Math.min(objPosition.getY() + objSize.height/2, maxY));
 		addCollisionPointToGrid(o, west);
 	}	
 	
@@ -207,12 +210,12 @@ public class CanvasProcessor
 	 * Add collision point (E, N, W, S) to grid node
 	 */
 	private void addCollisionPointToGrid(CanvasObject o, Point2D location) {
-		int row = (int)(Math.floor((location.getY() / canvasSize.getHeight()) * numRows)); 
-		int col = (int)(Math.floor((location.getX() / canvasSize.getWidth()) * numCols));
+		int row = (int)(Math.floor((location.getY() / (canvas.x + canvas.getHeight())) * numRows)); 
+		int col = (int)(Math.floor((location.getX() / (canvas.y + canvas.getWidth())) * numCols));
 		
 		// bit of a hack for rounding error when regionWidth or regionHeight don't cleanly divide the canvas...
-		if (col * regionWidth > location.getX()) col--;
-		if (row * regionHeight > location.getY()) row--;
+		if (canvas.x + (col * regionWidth) > location.getX()) col--;
+		if (canvas.y + (row * regionHeight) > location.getY()) row--;
 		
 		int region = (row * numCols) + col;
 		

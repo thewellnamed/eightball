@@ -1,4 +1,4 @@
-package engine;
+package canvas;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -14,10 +14,10 @@ import javax.vecmath.Vector2d;
  */
 public abstract class CanvasObject
 {
-	private Rectangle2D.Double bounds;
-	private Vector2d movementVector;
-	private double mass;
-	private Color color;
+	protected Rectangle2D.Double bounds;
+	protected Vector2d movementVector;
+	protected double mass;
+	protected Color color;
 	
 	/**
 	 * Default constructor
@@ -41,6 +41,21 @@ public abstract class CanvasObject
 	}
 	
 	/**
+	 * @return Object Color
+	 */
+	public Color getColor() {
+		return color;
+	}
+	
+	/**
+	 * Set object color
+	 * @param c New color
+	 */
+	public void setColor(Color c) {
+		color = c;
+	}	
+	
+	/**
 	 * @return Point containing x,y coordinates of object in canvas
 	 */
 	public Point2D getLocation() {
@@ -62,24 +77,7 @@ public abstract class CanvasObject
 	public Point2D getNextLocation() {
 		return new Point2D.Double(bounds.getX() + movementVector.getX(), bounds.getY() + movementVector.getY());
 	}
-		
-	/**
-	 * Get object size
-	 * @return Dimension(width, height) of object
-	 */
-	public Dimension getSize() {
-		return bounds.getBounds().getSize();
-	}	
-	
-	/**
-	 * Set object size
-	 * @param newSize New Dimension(width, height) of object
-	 */
-	public void setSize(Dimension newSize) {
-		bounds.width = newSize.getWidth();
-		bounds.height = newSize.getHeight();
-	}
-	
+			
 	/**
 	 * @return Mass
 	 */
@@ -111,6 +109,23 @@ public abstract class CanvasObject
 	 */
 	public void setMovementVector(Vector2d newVector) {
 		movementVector = newVector;
+	}
+	
+	/**
+	 * Get object size
+	 * @return Dimension(width, height) of object
+	 */
+	public Dimension getSize() {
+		return bounds.getBounds().getSize();
+	}	
+	
+	/**
+	 * Set object size
+	 * @param newSize New Dimension(width, height) of object
+	 */
+	public void setSize(Dimension newSize) {
+		bounds.width = newSize.getWidth();
+		bounds.height = newSize.getHeight();
 	}
 
 	/**
@@ -161,29 +176,7 @@ public abstract class CanvasObject
 	public Area getAreaForCollision() {
 		return new Area(getNextBounds());
 	}
-	
-	/**
-	 * @return Object Color
-	 */
-	public Color getColor() {
-		return color;
-	}
-	
-	/**
-	 * Set object color
-	 * @param c New color
-	 */
-	public void setColor(Color c) {
-		color = c;
-	}	
-	
-	/**
-	 * Incrementally update position based on movement vector
-	 */
-	public void move() {
-		bounds = getNextBounds();
-	}
-	
+			
 	/**
 	 * Check for intersection with other object in canvas
 	 * Default uses bounding rectangle of both objects
@@ -196,6 +189,13 @@ public abstract class CanvasObject
 		return overlap;
 	}
 		
+	/**
+	 * Incrementally update position based on movement vector
+	 */
+	public void move() {
+		bounds = getNextBounds();
+	}
+	
 	/**
 	 * Clone a CanvasObject
 	 */
