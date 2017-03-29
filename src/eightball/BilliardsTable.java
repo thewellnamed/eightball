@@ -29,13 +29,13 @@ public class BilliardsTable extends Canvas {
 		
 		// BasicPhysics model
 		BasicPhysicsModel model = new BasicPhysicsModel();
-		model.setWallCollisionCoefficient(COR_WALL_COLLISIONS);
 		model.setMaxCollisionPasses(MAX_COLLISION_PASSES);
 		
 		// Billiard Ball model
-		// Only use default collision type for now, we bounce off everything...
 		// TODO: We will *not* bounce off pockets...
 		CanvasTypeConfiguration ballConfig = new CanvasTypeConfiguration(COR_BALL_COLLISIONS, COEFFICIENT_BALL_FRICTION, CollisionType.Bounce);
+		ballConfig.addCollisionConfig(BilliardBall.canvasObjectType, new CollisionTypeConfiguration(CollisionType.Bounce, COR_BALL_COLLISIONS));
+		ballConfig.addCollisionConfig(Canvas.canvasObjectType, new CollisionTypeConfiguration(CollisionType.Bounce, COR_WALL_COLLISIONS));
 		model.addTypeConfig(BilliardBall.canvasObjectType, ballConfig);
 		
 		// TODO: Pocket model...

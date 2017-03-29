@@ -3,32 +3,57 @@ package canvas.physics;
 import java.util.HashMap;
 
 /**
- * 
- *
+ * Physics model for a specific CanvasObject implementation
+ * Model defines how to collide with other CanvasObject types (including the same type)
  */
 public class CanvasTypeConfiguration {
-	protected double collisionCoefficient;
 	protected double frictionCoefficient;
-	protected HashMap<String, CollisionType> collisionConfig;
+	protected HashMap<String, CollisionTypeConfiguration> collisionConfig;
 	protected CollisionType defaultCollisionType;
+	protected double defaultCollisionCoefficient;
 	
+	/**
+	 * Constructor
+	 * @param collision Coefficient of Restitution for object type
+	 * @param friction Coefficient of Friction for object type
+	 * @param defCollisionType Default Collision Type, used when not overridden for a specific type.
+	 */
 	public CanvasTypeConfiguration(double collision, double friction, CollisionType defCollisionType) {
-		collisionCoefficient = collision;
-		frictionCoefficient = friction;
+		defaultCollisionCoefficient = collision;
 		defaultCollisionType = defCollisionType;
-		collisionConfig = new HashMap<String, CollisionType>();
+		frictionCoefficient = friction;
+		collisionConfig = new HashMap<String, CollisionTypeConfiguration>();
 	}
 	
-	public void addCollisionConfig(String objectType, CollisionType collisionType) {
-		collisionConfig.put(objectType, collisionType);
+	/**
+	 * Add a CollisionType for a specific CanvasObject class
+	 * @param objectType Type of CanvasObject (CanvasObject.getType())
+	 * @param collisionType (Collision Type)
+	 */
+	public void addCollisionConfig(String objectType, CollisionTypeConfiguration config) {
+		collisionConfig.put(objectType, config);
 	}
 	
+	/**
+	 * Get Collision Type for a specific CanvasObject type
+	 * @param objectType CanvasObject type
+	 * @return CollisionType 
+	 */
 	public CollisionType getCollisionType(String objectType) {
-		CollisionType type = collisionConfig.get(objectType);
-		if (type == null) {
+		CollisionTypeConfiguration config = collisionConfig.get(objectType);
+		if (config == null) {
 			return defaultCollisionType;
 		}
 		
-		return type;
+		return config.collisionType;
+	}
+	
+	public double getCollisionCoefficient(String objectType) {
+		CollisionTypeConfiguration config = collisionConfig.get(objectType);
+		if (config == null) {
+			return defaultCollisionCoefficient;
+		}
+		
+		return config.coefficient;
 	}
 }

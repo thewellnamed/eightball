@@ -14,7 +14,7 @@ import javax.vecmath.Vector2d;
 import canvas.*;
 
 /**
- * Movement and Collision Processing for CanvasObjects in Canvas
+ * Movement and Collision Processing using basic physics engine for CanvasObjects in Canvas
  */
 @SuppressWarnings("serial")
 public class BasicPhysicsCanvasProcessor implements CanvasProcessor
@@ -310,12 +310,7 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 		double bMass = b.getMass();
 		double aNormalScaleFactor = aVector.dot(unitNormalVector);
 		double bNormalScaleFactor = bVector.dot(unitNormalVector);
-		
-		// use CoR from whichever object has the smallest value
-		double aCoR = model.getTypeConfig(a.getType()).collisionCoefficient;
-		double bCoR = model.getTypeConfig(b.getType()).collisionCoefficient;
-		double restitution = Math.min(aCoR,  bCoR);
-		
+		double restitution = model.getTypeConfig(a.getType()).getCollisionCoefficient(b.getType());		
 		
 		Vector2d newVectorForA = new Vector2d(unitTangentVector);
 		Vector2d newVectorForB = new Vector2d(unitTangentVector);
@@ -341,7 +336,7 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 	 * Perform collision between object and side-wall
 	 */
 	private void collide(CanvasObject o, int wall) {
-		double wallCoefficient = model.wallCollisionCoefficient;
+		double wallCoefficient = model.getTypeConfig(o.getType()).getCollisionCoefficient(Canvas.canvasObjectType);
 		
 		switch (wall) {
 			case Canvas.WALL_EAST:

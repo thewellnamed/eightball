@@ -2,31 +2,38 @@ package canvas.physics;
 
 import java.util.HashMap;
 
+/**
+ * BasicPhysicsModel contains constants used by BasicPhysicsCanvasProcessor to process collisions
+ *
+ */
 public class BasicPhysicsModel {
 	protected HashMap<String, CanvasTypeConfiguration> typeConfig;
-	protected double wallCollisionCoefficient;
 	protected int maxCollisionPasses;
 	
+	/**
+	 * Constructor
+	 */
 	public BasicPhysicsModel() {
 		typeConfig = new HashMap<String, CanvasTypeConfiguration>();
-		wallCollisionCoefficient = 1;
 		maxCollisionPasses = 1;
 	}
 	
+	/**
+	 * Add a new CanvasObject type to model
+	 * @param type CanvasObject type (CanvasObject.getType())
+	 * @param config Configuration for CanvasObject type (see CanvasTypeConfiguration)
+	 */
 	public void addTypeConfig(String type, CanvasTypeConfiguration config) {
 		typeConfig.put(type,  config);
 	}
 	
+	/**
+	 * Get Config for a given CanvasObject type
+	 * @param type CanvasObject type
+	 * @return CanvasTypeConfiguration
+	 */
 	public CanvasTypeConfiguration getTypeConfig(String type) {
 		return typeConfig.get(type);
-	}
-	
-	public double getWallCollisionCoefficient() {
-		return wallCollisionCoefficient;
-	}
-	
-	public void setWallCollisionCoefficient(double value) {
-		wallCollisionCoefficient = value;
 	}
 	
 	public int getMaxCollisionPasses() {
