@@ -207,6 +207,15 @@ public abstract class CanvasObject
 	 */
 	public abstract void draw(Graphics2D g);
 	
+	
+	/**
+	 * String designating the type of object.
+	 * @return String
+	 */
+	public String getType() {
+		return "CanvasObject";
+	};
+	
 	/**
 	 * toString() override
 	 */

@@ -17,6 +17,8 @@ public class BilliardBall extends CanvasObject
 {	
 	private int id;
 	
+	public static String canvasObjectType = "BilliardBall";
+	
 	/**
 	 * Default constructor
 	 */
@@ -34,6 +36,11 @@ public class BilliardBall extends CanvasObject
 	 */
 	public BilliardBall(BilliardBall src) {
 		super(src);
+	}
+	
+	@Override
+	public String getType() {
+		return canvasObjectType;
 	}
 	
 	/**

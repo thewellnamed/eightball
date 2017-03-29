@@ -1,4 +1,4 @@
-package eightball;
+package canvas.physics;
 
 import java.awt.Dimension;
 import java.awt.Rectangle;
@@ -17,7 +17,7 @@ import canvas.*;
  * Movement and Collision Processing for CanvasObjects in Canvas
  */
 @SuppressWarnings("serial")
-public class BilliardsCanvasProcessor implements CanvasProcessor
+public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 {
 	private int numRows;
 	private int numCols;
@@ -29,12 +29,15 @@ public class BilliardsCanvasProcessor implements CanvasProcessor
 	private int expectedObjectCount;
 	private HashMap<Integer, CollisionNode> nodes;
 	private HashMap<Integer, Integer> lastCollision;
+	private BasicPhysicsModel model;
 	
-	// collision processing
-	private static final int MAX_COLLISION_PASSES = 5;
-	private static final double COR_BALL_COLLISIONS = 0.965; // coefficient of restitution: ball<-->ball
-	private static final double COR_WALL_COLLISIONS = 0.74;  // coefficient of restitution: ball-->rail
-	private static final double COEFFICIENT_FRICTION = 0.98; // coefficient of friction: rolling ball
+	/**
+	 * Constructor
+	 * @param physicsModel Physics model to use in processing
+	 */
+	public BasicPhysicsCanvasProcessor(BasicPhysicsModel physicsModel) {
+		model = physicsModel;
+	}
 	
 	public boolean initialize(Rectangle bounds, Dimension objSize, int objCount) {
 		canvas = bounds;
@@ -88,7 +91,7 @@ public class BilliardsCanvasProcessor implements CanvasProcessor
 		lastCollision.clear();
 		HashSet<Integer> collisions = new HashSet<Integer>();
 		
-		// iterate processor up to MAX_COLLISION_PASSES times as long
+		// iterate processor based on PhysicsModel
 		// as the last pass found a collision.
 		// This reduces overlap problems caused when multiple objects are all colliding
 		do {
@@ -123,6 +126,12 @@ public class BilliardsCanvasProcessor implements CanvasProcessor
 				
 			// Check for wall collisions
 			for (CanvasObject o : objects) {
+				// Only collide if type allows for it
+				CanvasTypeConfiguration config = model.getTypeConfig(o.getType());
+				if (config.getCollisionType(Canvas.canvasObjectType) != CollisionType.Bounce) {
+					continue;
+				}
+				
 				Point2D desired = o.getNextLocation();
 				Dimension size = o.getSize();
 				
@@ -154,7 +163,7 @@ public class BilliardsCanvasProcessor implements CanvasProcessor
 					haveCollision = true;
 				}
 			}			
-		} while (haveCollision && pass < MAX_COLLISION_PASSES);
+		} while (haveCollision && pass < model.maxCollisionPasses);
 		
 		for (CanvasObject o : objects) {
 			// move each object
@@ -163,7 +172,7 @@ public class BilliardsCanvasProcessor implements CanvasProcessor
 			// apply friction
 			Vector2d mv = o.getMovementVector();
 			if (mv.length() > 0.25) {
-				mv.scale(COEFFICIENT_FRICTION);
+				mv.scale(model.getTypeConfig(o.getType()).frictionCoefficient);
 			} else {
 				o.setMovementVector(new Vector2d(0, 0));
 			}
@@ -243,11 +252,18 @@ public class BilliardsCanvasProcessor implements CanvasProcessor
 	 */
 	private boolean checkAndProcessCollision(CanvasObject a, CanvasObject b) {
 		boolean haveCollision = false;
+		
+		// check model to see if we can collide
+		CanvasTypeConfiguration config = model.getTypeConfig(a.getType());
+		if (config.getCollisionType(b.getType()) != CollisionType.Bounce)
+			return false;
+		
 		Vector2d aV = a.getMovementVector();
 		Vector2d bV = b.getMovementVector();
 		int aHash = a.hashCode();
 		int bHash = b.hashCode();
 		
+		// can't collide if we're not moving
 		if (aV.getX() == 0 && aV.getY() == 0 && bV.getX() == 0 && bV.getY() == 0) {
 			return false;
 		}
@@ -295,6 +311,12 @@ public class BilliardsCanvasProcessor implements CanvasProcessor
 		double aNormalScaleFactor = aVector.dot(unitNormalVector);
 		double bNormalScaleFactor = bVector.dot(unitNormalVector);
 		
+		// use CoR from whichever object has the smallest value
+		double aCoR = model.getTypeConfig(a.getType()).collisionCoefficient;
+		double bCoR = model.getTypeConfig(b.getType()).collisionCoefficient;
+		double restitution = Math.min(aCoR,  bCoR);
+		
+		
 		Vector2d newVectorForA = new Vector2d(unitTangentVector);
 		Vector2d newVectorForB = new Vector2d(unitTangentVector);
 		
@@ -303,13 +325,13 @@ public class BilliardsCanvasProcessor implements CanvasProcessor
 		
 		// scaling factor in the form for inelastic collisions: https://en.wikipedia.org/wiki/Inelastic_collision		
 		Vector2d aNorm = new Vector2d(unitNormalVector);			
-		aNorm.scale(((bMass * COR_BALL_COLLISIONS * (bNormalScaleFactor - aNormalScaleFactor)) + 
+		aNorm.scale(((bMass * restitution * (bNormalScaleFactor - aNormalScaleFactor)) + 
 				                (aMass * aNormalScaleFactor) + (bMass * bNormalScaleFactor)) / (aMass + bMass));
 		newVectorForA.add(aNorm);
 		a.setMovementVector(newVectorForA);
 		
 		Vector2d bNorm = new Vector2d(unitNormalVector);			
-		bNorm.scale(((aMass * COR_BALL_COLLISIONS * (aNormalScaleFactor - bNormalScaleFactor)) + 
+		bNorm.scale(((aMass * restitution * (aNormalScaleFactor - bNormalScaleFactor)) + 
 				                (bMass * bNormalScaleFactor) + (aMass * aNormalScaleFactor)) / (aMass + bMass));
 		newVectorForB.add(bNorm);
 		b.setMovementVector(newVectorForB);
@@ -319,15 +341,17 @@ public class BilliardsCanvasProcessor implements CanvasProcessor
 	 * Perform collision between object and side-wall
 	 */
 	private void collide(CanvasObject o, int wall) {
+		double wallCoefficient = model.wallCollisionCoefficient;
+		
 		switch (wall) {
 			case Canvas.WALL_EAST:
 			case Canvas.WALL_WEST:
-				o.getMovementVector().x *= -COR_WALL_COLLISIONS;
+				o.getMovementVector().x *= -wallCoefficient;
 				break;
 				
 			case Canvas.WALL_NORTH:
 			case Canvas.WALL_SOUTH:
-				o.getMovementVector().y *= -COR_WALL_COLLISIONS;
+				o.getMovementVector().y *= -wallCoefficient;
 				break;
 				
 			default:

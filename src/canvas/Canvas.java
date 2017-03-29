@@ -23,10 +23,19 @@ public class Canvas extends JComponent
 	private Timer animationTimer;
 	private int animationDelay;
 	
+	public final static String canvasObjectType = "Wall";
+	
 	public static final int WALL_NORTH = 1;
 	public static final int WALL_EAST = 2;
 	public static final int WALL_SOUTH = 3;
 	public static final int WALL_WEST = 4;
+	
+	/**
+	 * Default constructor
+	 */
+	public Canvas() {
+		this(null);
+	}
 	
 	/**
 	 * Constructor

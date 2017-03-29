@@ -8,26 +8,48 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+
 import canvas.Canvas;
+import canvas.physics.*;
 
 @SuppressWarnings("serial")
 public class BilliardsTable extends Canvas {
-	
 	private BufferedImage background;
 	private static final Color canvasColor = new Color(0x0, 0xCC, 0x33);
 	
+	// configuration constants for physics processor
+	private static final int MAX_COLLISION_PASSES = 5;
+	private static final double COR_BALL_COLLISIONS = 0.965; // coefficient of restitution: ball<-->ball
+	private static final double COR_WALL_COLLISIONS = 0.74; // coefficient of restitution: ball-->rail
+	private static final double COEFFICIENT_BALL_FRICTION = 0.98; // coefficient of friction: rolling ball
+	
 	public BilliardsTable() {
-		super(new BilliardsCanvasProcessor());
 		setSize(900, 525);
+		setCanvasBounds(new Rectangle(100, 89, 700, 351));
 		
+		// BasicPhysics model
+		BasicPhysicsModel model = new BasicPhysicsModel();
+		model.setWallCollisionCoefficient(COR_WALL_COLLISIONS);
+		model.setMaxCollisionPasses(MAX_COLLISION_PASSES);
+		
+		// Billiard Ball model
+		// Only use default collision type for now, we bounce off everything...
+		// TODO: We will *not* bounce off pockets...
+		CanvasTypeConfiguration ballConfig = new CanvasTypeConfiguration(COR_BALL_COLLISIONS, COEFFICIENT_BALL_FRICTION, CollisionType.Bounce);
+		model.addTypeConfig(BilliardBall.canvasObjectType, ballConfig);
+		
+		// TODO: Pocket model...
+		
+		BasicPhysicsCanvasProcessor processor = new BasicPhysicsCanvasProcessor(model);
+		processor.initialize(canvasBounds, new Dimension(30, 30), 16);
+		setProcessor(processor);
+		
+		// load background
 		try {
 			background = ImageIO.read(new File("resources/table.png"));	
 		} catch (IOException e) {
 			System.out.println("Unable to load background...");
 		}
-		
-		canvasBounds = new Rectangle(100, 89, 700, 351);
-		processor.initialize(canvasBounds, new Dimension(30, 30), 16);
 	}
 	
 	@Override
