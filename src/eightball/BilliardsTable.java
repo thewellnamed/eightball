@@ -41,7 +41,7 @@ public class BilliardsTable extends Canvas {
 		// TODO: Pocket model...
 		
 		BasicPhysicsCanvasProcessor processor = new BasicPhysicsCanvasProcessor(model);
-		processor.initialize(canvasBounds, new Dimension(30, 30), 16);
+		processor.initialize(canvasBounds, new Dimension(25, 25), 16);
 		setProcessor(processor);
 		
 		// load background
@@ -68,6 +68,9 @@ public class BilliardsTable extends Canvas {
 	
 	@Override
 	protected void update() {
+		// TODO
+		// pass result of update() to Game to indicate end of a shot...
+		
 		processor.update(objects);
 		repaint(canvasBounds);
 	}

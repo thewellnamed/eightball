@@ -1,10 +1,7 @@
 package eightball;
 
 import java.awt.geom.Point2D;
-import java.io.IOException;
-
 import javax.vecmath.Vector2d;
-
 import canvas.*;
 
 /**
