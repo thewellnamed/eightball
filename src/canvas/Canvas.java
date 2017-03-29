@@ -10,7 +10,9 @@ import javax.swing.JComponent;
 import javax.swing.Timer;
 
 /**
- * Canvas for rendering Billiard Table
+ * Base Canvas class
+ * Provides basic implementation for rendering a set of CanvasObjects in a defined region
+ * Depends on an implementation of CanvasProcessor to handle movement updates
  */
 @SuppressWarnings("serial")
 public class Canvas extends JComponent
