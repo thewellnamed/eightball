@@ -33,7 +33,7 @@ public class BilliardsTable extends Canvas {
 		
 		// Billiard Ball model
 		// TODO: We will *not* bounce off pockets...
-		CanvasTypeConfiguration ballConfig = new CanvasTypeConfiguration(COR_BALL_COLLISIONS, COEFFICIENT_BALL_FRICTION, CollisionType.Bounce);
+		CanvasObjectConfiguration ballConfig = new CanvasObjectConfiguration(COR_BALL_COLLISIONS, COEFFICIENT_BALL_FRICTION, CollisionType.Bounce);
 		ballConfig.addCollisionConfig(BilliardBall.canvasObjectType, new CollisionTypeConfiguration(CollisionType.Bounce, COR_BALL_COLLISIONS));
 		ballConfig.addCollisionConfig(Canvas.canvasObjectType, new CollisionTypeConfiguration(CollisionType.Bounce, COR_WALL_COLLISIONS));
 		model.addTypeConfig(BilliardBall.canvasObjectType, ballConfig);

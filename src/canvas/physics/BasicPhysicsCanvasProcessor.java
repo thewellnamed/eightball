@@ -127,7 +127,7 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 			// Check for wall collisions
 			for (CanvasObject o : objects) {
 				// Only collide if type allows for it
-				CanvasTypeConfiguration config = model.getTypeConfig(o.getType());
+				CanvasObjectConfiguration config = model.getTypeConfig(o.getType());
 				if (config.getCollisionType(Canvas.canvasObjectType) != CollisionType.Bounce) {
 					continue;
 				}
@@ -254,7 +254,7 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 		boolean haveCollision = false;
 		
 		// check model to see if we can collide
-		CanvasTypeConfiguration config = model.getTypeConfig(a.getType());
+		CanvasObjectConfiguration config = model.getTypeConfig(a.getType());
 		if (config.getCollisionType(b.getType()) != CollisionType.Bounce)
 			return false;
 		

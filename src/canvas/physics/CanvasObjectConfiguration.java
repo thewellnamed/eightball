@@ -6,7 +6,7 @@ import java.util.HashMap;
  * Physics model for a specific CanvasObject implementation
  * Model defines how to collide with other CanvasObject types (including the same type)
  */
-public class CanvasTypeConfiguration {
+public class CanvasObjectConfiguration {
 	protected double frictionCoefficient;
 	protected HashMap<String, CollisionTypeConfiguration> collisionConfig;
 	protected CollisionType defaultCollisionType;
@@ -18,7 +18,7 @@ public class CanvasTypeConfiguration {
 	 * @param friction Coefficient of Friction for object type
 	 * @param defCollisionType Default Collision Type, used when not overridden for a specific type.
 	 */
-	public CanvasTypeConfiguration(double collision, double friction, CollisionType defCollisionType) {
+	public CanvasObjectConfiguration(double collision, double friction, CollisionType defCollisionType) {
 		defaultCollisionCoefficient = collision;
 		defaultCollisionType = defCollisionType;
 		frictionCoefficient = friction;

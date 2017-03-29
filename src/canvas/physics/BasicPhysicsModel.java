@@ -7,14 +7,14 @@ import java.util.HashMap;
  *
  */
 public class BasicPhysicsModel {
-	protected HashMap<String, CanvasTypeConfiguration> typeConfig;
+	protected HashMap<String, CanvasObjectConfiguration> typeConfig;
 	protected int maxCollisionPasses;
 	
 	/**
 	 * Constructor
 	 */
 	public BasicPhysicsModel() {
-		typeConfig = new HashMap<String, CanvasTypeConfiguration>();
+		typeConfig = new HashMap<String, CanvasObjectConfiguration>();
 		maxCollisionPasses = 1;
 	}
 	
@@ -23,7 +23,7 @@ public class BasicPhysicsModel {
 	 * @param type CanvasObject type (CanvasObject.getType())
 	 * @param config Configuration for CanvasObject type (see CanvasTypeConfiguration)
 	 */
-	public void addTypeConfig(String type, CanvasTypeConfiguration config) {
+	public void addTypeConfig(String type, CanvasObjectConfiguration config) {
 		typeConfig.put(type,  config);
 	}
 	
@@ -32,7 +32,7 @@ public class BasicPhysicsModel {
 	 * @param type CanvasObject type
 	 * @return CanvasTypeConfiguration
 	 */
-	public CanvasTypeConfiguration getTypeConfig(String type) {
+	public CanvasObjectConfiguration getTypeConfig(String type) {
 		return typeConfig.get(type);
 	}
 	
