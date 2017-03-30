@@ -8,6 +8,7 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 
 import canvas.CanvasObject;
+import eightball.enums.*;
 
 
 /**
@@ -15,16 +16,16 @@ import canvas.CanvasObject;
  */
 public class BilliardBall extends CanvasObject
 {	
-	private int id;
+	private BallNumber ball;
 	
 	public static String canvasObjectType = "BilliardBall";
-	
+		
 	/**
 	 * Default constructor
 	 */
-	public BilliardBall(int number) {
+	public BilliardBall(BallNumber b) {
 		super();
-		id = number;
+		ball = b;
 		
 		// basic ball characteristics
 		setSize(new Dimension(25, 25));
@@ -74,7 +75,7 @@ public class BilliardBall extends CanvasObject
 	 */
 	@Override
 	public String toString() {
-		return String.format("BilliardBall(%d)", id);
+		return String.format("BilliardBall(%d)", ball.getNumber());
 	}
 	
 	/**
@@ -87,6 +88,6 @@ public class BilliardBall extends CanvasObject
 		g.fill(new Ellipse2D.Double(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight()));
 		
 		g.setColor(Color.WHITE);
-		g.drawString(String.format("%d", id), (int)(bounds.getX() + bounds.getWidth()/3), (int)(bounds.getY() + (bounds.getHeight()/2)));
+		g.drawString(String.format("%d", ball.getNumber()), (int)(bounds.getX() + bounds.getWidth()/3), (int)(bounds.getY() + (bounds.getHeight()/2)));
 	}
 }

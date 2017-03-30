@@ -44,22 +44,7 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 		objectSize = objSize;
 		expectedObjectCount = objCount;
 		
-		initializeCollisionGrid();
-		
-		nodes = new HashMap<Integer, CollisionNode>(maxRegions);
-		lastCollision = new HashMap<Integer, Integer>(100);
-
-		int nextRegion = 0;
-		for (int i = 0; i < numRows; i++) {
-			for (int j = 0; j < numCols; j++) {
-				double regionX = canvas.x + (regionWidth * j);
-				double regionY = canvas.y + (regionHeight * i);	
-		
-				Rectangle2D rect = new Rectangle2D.Double(regionX, regionY, regionWidth, regionHeight);
-				nodes.put(nextRegion++, new CollisionNode(rect));
-			}
-		}
-		
+		initializeCollisionGrid();		
 		return true;
 	}
 	
@@ -80,6 +65,20 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 		maxRegions = (numRows * numCols);
 		regionWidth = canvas.getWidth() / numCols;
 		regionHeight = canvas.getHeight() / numRows;
+		
+		nodes = new HashMap<Integer, CollisionNode>(maxRegions);
+		lastCollision = new HashMap<Integer, Integer>(100);
+
+		int nextRegion = 0;
+		for (int i = 0; i < numRows; i++) {
+			for (int j = 0; j < numCols; j++) {
+				double regionX = canvas.x + (regionWidth * j);
+				double regionY = canvas.y + (regionHeight * i);	
+		
+				Rectangle2D rect = new Rectangle2D.Double(regionX, regionY, regionWidth, regionHeight);
+				nodes.put(nextRegion++, new CollisionNode(rect));
+			}
+		}
 	}
 	
 	/**

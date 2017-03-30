@@ -26,6 +26,7 @@ public class BilliardsTable extends Canvas {
 	public BilliardsTable() {
 		setSize(900, 525);
 		setCanvasBounds(new Rectangle(100, 89, 700, 351));
+		setAnimationDelay(30); // 30 ms
 		
 		// BasicPhysics model
 		BasicPhysicsModel model = new BasicPhysicsModel();
