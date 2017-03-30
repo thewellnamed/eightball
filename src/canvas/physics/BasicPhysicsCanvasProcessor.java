@@ -261,16 +261,16 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 		Vector2d bV = b.getMovementVector();
 		int aHash = a.hashCode();
 		int bHash = b.hashCode();
-		
-		// can't collide if we're not moving
-		if (aV.getX() == 0 && aV.getY() == 0 && bV.getX() == 0 && bV.getY() == 0) {
-			return false;
-		}
-		
+				
 		// deformation
 		Area intersection = a.getOverlapWith(b);
 		if (!intersection.isEmpty()) {
 			deformCollision(a, b, intersection.getBounds2D());
+		}
+		
+		// can't collide if we're not moving
+		if (aV.getX() == 0 && aV.getY() == 0 && bV.getX() == 0 && bV.getY() == 0) {
+			return false;
 		}
 		
 		// pending collision

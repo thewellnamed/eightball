@@ -16,14 +16,14 @@ import eightball.enums.*;
  */
 public class BilliardBall extends CanvasObject
 {	
-	private BallNumber ball;
+	private BallDefinition ball;
 	
 	public static String canvasObjectType = "BilliardBall";
 		
 	/**
 	 * Default constructor
 	 */
-	public BilliardBall(BallNumber b) {
+	public BilliardBall(BallDefinition b) {
 		super();
 		ball = b;
 		

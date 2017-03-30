@@ -30,12 +30,12 @@ public class Game {
 		int[] offsetY = { 0, 50, 38, 64, 25, 51, 76, 12, 38, 64, 90, 0, 26, 52, 78, 104 };
 		
 		for (int i = 1; i < 16; i++) {
-			CanvasObject s = new BilliardBall(BallNumber.valueOf(i));
+			CanvasObject s = new BilliardBall(BallDefinition.valueOf(i));
 			s.setLocation(new Point2D.Double(baseX + offsetX[i], baseY + offsetY[i]));
 			table.add(s);
 		}
 		
-		CanvasObject cue = new BilliardBall(BallNumber.CUE);
+		CanvasObject cue = new BilliardBall(BallDefinition.CUE);
 		cue.setLocation(new Point2D.Double(180, 260));
 		cue.setMovementVector(new Vector2d(32, -1));
 		table.add(cue);
