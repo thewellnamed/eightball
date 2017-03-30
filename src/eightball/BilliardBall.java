@@ -18,6 +18,7 @@ public class BilliardBall extends CanvasObject
 {	
 	private BallDefinition ball;
 	
+	public static Dimension ballSize = new Dimension(25, 25);
 	public static String canvasObjectType = "BilliardBall";
 		
 	/**
@@ -28,7 +29,7 @@ public class BilliardBall extends CanvasObject
 		ball = b;
 		
 		// basic ball characteristics
-		setSize(new Dimension(25, 25));
+		setSize(ballSize);
 	}
 
 	/**
@@ -83,6 +84,8 @@ public class BilliardBall extends CanvasObject
 	 */
 	@Override
 	public void draw(Graphics2D g) {
+		// TODO: Use BallDefinition to get Color/Number and Solid/Stripe for rendering...
+		
 		Rectangle2D bounds = getBounds();
 		g.setColor(getColor());
 		g.fill(new Ellipse2D.Double(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight()));

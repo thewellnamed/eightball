@@ -1,7 +1,6 @@
 package eightball;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
@@ -42,7 +41,7 @@ public class BilliardsTable extends Canvas {
 		// TODO: Pocket model...
 		
 		BasicPhysicsCanvasProcessor processor = new BasicPhysicsCanvasProcessor(model);
-		processor.initialize(canvasBounds, new Dimension(25, 25), 16);
+		processor.initialize(canvasBounds, BilliardBall.ballSize, 16);
 		setProcessor(processor);
 		
 		// load background
