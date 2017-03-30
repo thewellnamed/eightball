@@ -23,8 +23,8 @@ public class Canvas extends JComponent
 	private Timer animationTimer;
 	private int animationDelay;
 	
+	// Used for wall collisions
 	public final static String canvasObjectType = "Wall";
-	
 	public static final int WALL_NORTH = 1;
 	public static final int WALL_EAST = 2;
 	public static final int WALL_SOUTH = 3;

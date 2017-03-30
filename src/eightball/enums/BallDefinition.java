@@ -5,8 +5,12 @@ import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Defined properties of standard billiard balls
+ * and helper methods
+ */
 public enum BallDefinition {	
-	// Ball Definitions
+	// Ball Definitions ---------------------------------------------
 	CUE(0, BallType.CUE, Color.WHITE),
 	
 	ONE(1, BallType.SOLID, Color.YELLOW), 
@@ -27,17 +31,11 @@ public enum BallDefinition {
 	FOURTEEN(14, BallType.STRIPE, Color.GREEN), 
 	FIFTEEN(15, BallType.STRIPE, Color.MAGENTA);
 	
+	// --------------------------------------------------------------
+	
 	private int id;
 	private BallType type;
 	private Color color;
-	
-	private static Map<Integer, BallDefinition> typeMap = new HashMap<Integer, BallDefinition>();
-	
-	static {
-	    for (BallDefinition b : BallDefinition.values()) {
-	        typeMap.put(b.id, b);
-	    }
-	}
 	
 	private BallDefinition(int number, BallType t, Color c) {
 		id = number;
@@ -45,6 +43,11 @@ public enum BallDefinition {
 		color = c;
 	}
 	
+	/**
+	 * Get BallDefinition by number
+	 * @param id Ball number (1-15)
+	 * @return BallDefinition
+	 */
 	public static BallDefinition valueOf(int id) {
 		BallDefinition b = typeMap.get(id);
 		
@@ -55,15 +58,34 @@ public enum BallDefinition {
 		return b;
 	}
 	
+	/**
+	 * @return Ball number (1-15, 0 for Cueball)
+	 */
 	public int getNumber() {
 		return id;
 	}
 	
+	/**
+	 * @return Color of ball
+	 */
 	public Color getColor() {
 		return color;
 	}
 	
+	/**
+	 * @return Ball Type (Cue, Eightball, Solid, Stripe)
+	 */
 	public BallType getType() {
 		return type;
+	}
+	
+	/*
+	 * Create map for use by valueOf()
+	 */
+	private static Map<Integer, BallDefinition> typeMap = new HashMap<Integer, BallDefinition>();
+	static {
+	    for (BallDefinition b : BallDefinition.values()) {
+	        typeMap.put(b.id, b);
+	    }
 	}
 }

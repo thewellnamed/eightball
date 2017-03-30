@@ -11,6 +11,11 @@ import javax.imageio.ImageIO;
 import canvas.Canvas;
 import canvas.physics.*;
 
+/**
+ * BilliardsTable 
+ * Implements Canvas with a BasicPhysics model for collisions
+ * Manages UI for player shot selection
+ */
 @SuppressWarnings("serial")
 public class BilliardsTable extends Canvas {
 	private BufferedImage background;
@@ -22,6 +27,9 @@ public class BilliardsTable extends Canvas {
 	private static final double COR_WALL_COLLISIONS = 0.74; // coefficient of restitution: ball-->rail
 	private static final double COEFFICIENT_BALL_FRICTION = 0.98; // coefficient of friction: rolling ball
 	
+	/**
+	 * Constructor
+	 */
 	public BilliardsTable() {
 		setSize(900, 525);
 		setCanvasBounds(new Rectangle(100, 89, 700, 351));
@@ -52,6 +60,9 @@ public class BilliardsTable extends Canvas {
 		}
 	}
 	
+	/**
+	 * Render table, balls, cue stick
+	 */
 	@Override
 	public void paintComponent(Graphics g) {
 		// re-render background only if needed
@@ -66,6 +77,9 @@ public class BilliardsTable extends Canvas {
 		super.paintComponent(g);
 	}
 	
+	/**
+	 * Process ball movement
+	 */
 	@Override
 	protected void update() {
 		// TODO

@@ -48,6 +48,11 @@ public class CanvasObjectConfiguration {
 		return config.collisionType;
 	}
 	
+	/**
+	 * Coefficient of Restitution for collisions with a specified type of CanvasObject
+	 * @param objectType Type of CanvasObject colliding with
+	 * @return Coefficient of Restitution for collisions with objectType
+	 */
 	public double getCollisionCoefficient(String objectType) {
 		CollisionTypeConfiguration config = collisionConfig.get(objectType);
 		if (config == null) {

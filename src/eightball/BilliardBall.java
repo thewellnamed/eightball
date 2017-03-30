@@ -40,6 +40,9 @@ public class BilliardBall extends CanvasObject
 		super(src);
 	}
 	
+	/**
+	 * CanvasObject Type used in Physics processor
+	 */
 	@Override
 	public String getType() {
 		return canvasObjectType;

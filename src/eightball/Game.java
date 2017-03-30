@@ -7,7 +7,7 @@ import canvas.*;
 import eightball.enums.*;
 
 /**
- * Track Eightball game state, manage canvas and player actions
+ * Track Eightball game state, manage table state
  */
 public class Game {
 	private BilliardsTable table;
@@ -49,6 +49,7 @@ public class Game {
 		return table;
 	}
 	
+	// These are going to go away...
 	public void start() {
 		table.start();
 	}

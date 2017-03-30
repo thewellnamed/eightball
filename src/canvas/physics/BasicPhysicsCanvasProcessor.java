@@ -39,6 +39,10 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 		model = physicsModel;
 	}
 	
+	/**
+	 * Initialize processor
+	 * See CanvasProcessor
+	 */
 	public boolean initialize(Rectangle bounds, Dimension objSize, int objCount) {
 		canvas = bounds;
 		objectSize = objSize;
@@ -83,6 +87,7 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 	
 	/**
 	 * Main processing method -- process collisions and update CanvasObject states
+	 * See CanvasProcessor
 	 */
 	public boolean update(Collection<CanvasObject> objects) {
 		int pass = 0;

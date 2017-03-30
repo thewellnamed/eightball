@@ -36,10 +36,18 @@ public class BasicPhysicsModel {
 		return typeConfig.get(type);
 	}
 	
+	/**
+	 * Maximum number of passes to perform in collision processing
+	 * @return Max collision passes
+	 */
 	public int getMaxCollisionPasses() {
 		return maxCollisionPasses;
 	}
 	
+	/**
+	 * Set Maximum passes to perform in collision processor
+	 * @param value Max passes
+	 */
 	public void setMaxCollisionPasses(int value) {
 		maxCollisionPasses = value;
 	}
