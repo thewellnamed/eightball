@@ -33,11 +33,11 @@ public enum BallDefinition {
 	
 	private static Map<Integer, BallDefinition> typeMap = new HashMap<Integer, BallDefinition>();
 	
-    static {
-        for (BallDefinition b : BallDefinition.values()) {
-            typeMap.put(b.id, b);
-        }
-    }
+	static {
+	    for (BallDefinition b : BallDefinition.values()) {
+	        typeMap.put(b.id, b);
+	    }
+	}
 	
 	private BallDefinition(int number, BallType t, Color c) {
 		id = number;
