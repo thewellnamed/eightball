@@ -5,5 +5,5 @@ package canvas.physics;
  *
  */
 public enum CollisionType {
-	None, Bounce, Custom
+	NONE, BOUNCE, CUSTOM
 }

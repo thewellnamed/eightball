@@ -127,7 +127,7 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 			for (CanvasObject o : objects) {
 				// Only collide if type allows for it
 				CanvasObjectConfiguration config = model.getTypeConfig(o.getType());
-				if (config.getCollisionType(Canvas.canvasObjectType) != CollisionType.Bounce) {
+				if (config.getCollisionType(Canvas.canvasObjectType) != CollisionType.BOUNCE) {
 					continue;
 				}
 				
@@ -254,7 +254,7 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 		
 		// check model to see if we can collide
 		CanvasObjectConfiguration config = model.getTypeConfig(a.getType());
-		if (config.getCollisionType(b.getType()) != CollisionType.Bounce)
+		if (config.getCollisionType(b.getType()) != CollisionType.BOUNCE)
 			return false;
 		
 		Vector2d aV = a.getMovementVector();
