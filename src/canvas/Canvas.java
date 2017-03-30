@@ -71,6 +71,14 @@ public class Canvas extends JComponent
 	}
 	
 	/**
+	 * Remove object from Canvas
+	 * @param o Object to remove
+	 */
+	public void remove(CanvasObject o) {
+		objects.remove(o);
+	}
+	
+	/**
 	 * Removes all active CanvasObjects and halts animation
 	 */
 	public void clear() {
