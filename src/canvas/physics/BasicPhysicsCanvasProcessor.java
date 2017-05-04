@@ -27,8 +27,8 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 	private Rectangle canvas;
 	private Dimension objectSize;
 	private int expectedObjectCount;
-	private HashMap<Integer, CollisionNode> nodes;
-	private HashMap<Integer, Integer> lastCollision;
+	private CollisionNode[] nodes;
+	private HashMap<CanvasObject, Integer> lastCollision;
 	private BasicPhysicsModel model;
 	
 	/**
@@ -70,8 +70,8 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 		regionWidth = canvas.getWidth() / numCols;
 		regionHeight = canvas.getHeight() / numRows;
 		
-		nodes = new HashMap<Integer, CollisionNode>(maxRegions);
-		lastCollision = new HashMap<Integer, Integer>(100);
+		nodes = new CollisionNode[maxRegions];
+		lastCollision = new HashMap<CanvasObject, Integer>(100);
 
 		int nextRegion = 0;
 		for (int i = 0; i < numRows; i++) {
@@ -80,7 +80,7 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 				double regionY = canvas.y + (regionHeight * i);	
 		
 				Rectangle2D rect = new Rectangle2D.Double(regionX, regionY, regionWidth, regionHeight);
-				nodes.put(nextRegion++, new CollisionNode(rect));
+				nodes[nextRegion++] = new CollisionNode(rect);
 			}
 		}
 	}
@@ -93,14 +93,12 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 		int pass = 0;
 		boolean haveCollision = false;		
 		lastCollision.clear();
-		HashSet<Integer> collisions = new HashSet<Integer>();
 		
 		// iterate processor based on PhysicsModel
 		// as the last pass found a collision.
 		// This reduces overlap problems caused when multiple objects are all colliding
 		do {
 			clearCollisionNodes();
-			collisions.clear();
 			pass++;
 			
 			// CanvasObject collisions
@@ -109,7 +107,7 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 
 			// second, check collisions within each grid cell
 			for (int i = 0; i < maxRegions; i++) {
-				CollisionNode node = nodes.get(i);
+				CollisionNode node = nodes[i];
 				int size = node.size();
 				
 				if (size > 1) {
@@ -119,8 +117,6 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 					for (int a = 0; a < size; a++) {
 						for (int b = a+1; b < size; b++) {
 							if (checkAndProcessCollision(objectArray[a], objectArray[b])) {
-								collisions.add(objectArray[a].hashCode());
-								collisions.add(objectArray[b].hashCode());
 								haveCollision = true;
 							};
 						}
@@ -145,25 +141,21 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 				// check for wall collisions
 				if (desired.getX() > maxWidth - size.width) {
 					collide(o, Canvas.WALL_EAST);
-					collisions.add(o.hashCode());
-					lastCollision.put(o.hashCode(), Canvas.WALL_EAST);
+					lastCollision.put(o, Canvas.WALL_EAST);
 					haveCollision = true;
 				} else if (desired.getX() < canvas.x) {
 					collide(o, Canvas.WALL_WEST);
-					collisions.add(o.hashCode());
-					lastCollision.put(o.hashCode(), Canvas.WALL_WEST);
+					lastCollision.put(o, Canvas.WALL_WEST);
 					haveCollision = true;
 				}
 				
 				if (desired.getY() > maxHeight - size.height) {
 					collide(o, Canvas.WALL_SOUTH);
-					collisions.add(o.hashCode());
-					lastCollision.put(o.hashCode(), Canvas.WALL_SOUTH);
+					lastCollision.put(o, Canvas.WALL_SOUTH);
 					haveCollision = true;
 				} else if (desired.getY() < canvas.y) {
 					collide(o, Canvas.WALL_NORTH);
-					collisions.add(o.hashCode());
-					lastCollision.put(o.hashCode(), Canvas.WALL_NORTH);
+					lastCollision.put(o, Canvas.WALL_NORTH);
 					haveCollision = true;
 				}
 			}			
@@ -232,14 +224,13 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 		
 		int region = (row * numCols) + col;
 		
-		CollisionNode node = nodes.get(region);
-		
-		// Sanity checks
-		if (node == null) {
+		if (region < 0 || region >= maxRegions) {
 			throw new IllegalStateException(
 					String.format("failed to find node for point at %s, row=%d, col=%d, region=%d", 
 							location, row, col, region));
 		}
+		
+		CollisionNode node = nodes[region];
 		
 		if (!node.getBounds().contains(location)) {
 			throw new IllegalStateException(
@@ -279,11 +270,11 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 		}
 		
 		// pending collision
-		if (collisionPending(a, b) && (!lastCollision.containsKey(aHash) || lastCollision.get(aHash) != bHash)) {	
+		if (collisionPending(a, b) && (!lastCollision.containsKey(a) || lastCollision.get(a) != bHash)) {	
 			collide(a, b);
 
-			lastCollision.put(aHash, bHash);
-			lastCollision.put(bHash, aHash);
+			lastCollision.put(a, bHash);
+			lastCollision.put(b, aHash);
 			haveCollision = true;
 		}
 		
@@ -392,7 +383,9 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 	 * Clear collision grid
 	 */
 	private void clearCollisionNodes() {
-		nodes.values().forEach(node -> node.clear());
+		for (int i = 0; i < maxRegions; i++) {
+			nodes[i].clear();
+		}
 	}
 	
 	/*
