@@ -2,7 +2,9 @@ package eightball;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
@@ -39,6 +41,11 @@ public class BilliardBall extends CanvasObject
 	public BilliardBall(BilliardBall src) {
 		super(src);
 	}
+	
+	public BallDefinition getDefinition() {
+		return ball;
+	}
+	
 	
 	/**
 	 * CanvasObject Type used in Physics processor
@@ -87,13 +94,54 @@ public class BilliardBall extends CanvasObject
 	 */
 	@Override
 	public void draw(Graphics2D g) {
-		// TODO: Use BallDefinition to get Color/Number and Solid/Stripe for rendering...
-		
 		Rectangle2D bounds = getBounds();
-		g.setColor(getColor());
-		g.fill(new Ellipse2D.Double(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight()));
+		Ellipse2D outline = new Ellipse2D.Double(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		
-		g.setColor(Color.WHITE);
-		g.drawString(String.format("%d", ball.getNumber()), (int)(bounds.getX() + bounds.getWidth()/3), (int)(bounds.getY() + (bounds.getHeight()/2)));
+		switch (ball.getType()) {
+			case CUE:
+				g.setColor(ball.getColor());
+				g.fill(outline);
+				break;
+				
+			case EIGHTBALL:
+			case SOLID:
+				g.setColor(ball.getColor());
+				g.fill(outline);
+				
+				g.setColor(Color.WHITE);
+				g.fill(new Ellipse2D.Double(bounds.getX() + 6, bounds.getY() + 6, bounds.getWidth() - 12, bounds.getHeight() - 12));
+				
+				drawBallNumber(g);
+				break;
+				
+			case STRIPE:
+				g.setColor(Color.WHITE);
+				g.fill(outline);
+				
+				Area stripe = new Area(outline);
+				Rectangle2D band = new Rectangle2D.Double(bounds.getX(), bounds.getY() + 4, bounds.getWidth(), bounds.getHeight() - 8);
+				stripe.intersect(new Area(band));
+				g.setColor(ball.getColor());
+				g.fill(stripe);
+				
+				g.setColor(Color.WHITE);
+				g.fill(new Ellipse2D.Double(bounds.getX() + 6, bounds.getY() + 6, bounds.getWidth() - 12, bounds.getHeight() - 12));
+				drawBallNumber(g);
+
+				break;
+		}
+	}
+	
+	private void drawBallNumber(Graphics2D g) {
+		Font currentFont = g.getFont();
+		Font newFont = currentFont.deriveFont(10F);
+		g.setFont(newFont);
+		
+		int x = ball.getNumber() > 9 ? 7 : 11;
+		int y = 16;
+		
+		g.setColor(Color.BLACK);
+		g.drawString(String.format("%d", ball.getNumber()), (int)(bounds.getX() + x), (int)(bounds.getY() + y));
 	}
 }

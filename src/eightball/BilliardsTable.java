@@ -1,15 +1,22 @@
 package eightball;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import javax.vecmath.Vector2d;
 
 import canvas.Canvas;
 import canvas.physics.*;
+import eightball.enums.BallType;
 
 /**
  * BilliardsTable 
@@ -19,6 +26,10 @@ import canvas.physics.*;
 @SuppressWarnings("serial")
 public class BilliardsTable extends Canvas {
 	private BufferedImage background;
+	private MouseMotionListener mmListener;
+	private Point2D cursorPosition;
+	private BilliardBall cueBall;
+	
 	private static final Color canvasColor = new Color(0x0, 0xCC, 0x33);
 	
 	// configuration constants for physics processor
@@ -52,6 +63,19 @@ public class BilliardsTable extends Canvas {
 		processor.initialize(canvasBounds, BilliardBall.ballSize, 16);
 		setProcessor(processor);
 		
+		// Mouse Motion Listener
+		cursorPosition = new Point2D.Double(-1, -1);
+		mmListener = new MouseMotionListener() {
+			@Override
+			public void mouseMoved(MouseEvent e) {
+				cursorPosition.setLocation(e.getX(), e.getY());
+				repaint();
+			}
+			
+			public void mouseDragged(MouseEvent e) {}
+		};
+		addMouseMotionListener(mmListener);
+		
 		// load background
 		try {
 			background = ImageIO.read(new File("resources/table.png"));	
@@ -60,12 +84,22 @@ public class BilliardsTable extends Canvas {
 		}
 	}
 	
+	public void add(BilliardBall b) {
+		if (b.getDefinition().getType() == BallType.CUE) {
+			cueBall = b;
+		}
+		
+		super.add(b);
+	}
+	
 	/**
 	 * Render table, balls, cue stick
 	 */
 	@Override
-	public void paintComponent(Graphics g) {
+	public void paintComponent(Graphics g2d) {
 		// re-render background only if needed
+		Graphics2D g = (Graphics2D) g2d;
+		
 		Rectangle clip = g.getClipBounds();
 		if (clip == null || clip.x == 0 || clip.y == 0) {
 			g.drawImage(background, 0,  0,  null);
@@ -75,6 +109,21 @@ public class BilliardsTable extends Canvas {
 		g.setColor(canvasColor);
 		g.fillRect(canvasBounds.x, canvasBounds.y, canvasBounds.width, canvasBounds.height);
 		super.paintComponent(g);
+		
+		if (cueBall != null && cursorPosition.getX() >= 0) {
+			Point2D cueLocation = cueBall.getCenterPoint();
+			Vector2d cueStickNormal = new Vector2d(cursorPosition.getX() - cueLocation.getX(), cursorPosition.getY() - cueLocation.getY());
+			cueStickNormal.normalize();
+			
+			Vector2d cueStick = new Vector2d(cueStickNormal);
+			cueStick.scale(75);
+			cueStickNormal.scale(20);
+			
+			g.setColor(Color.BLACK);
+			g.setStroke(new BasicStroke(5));
+			g.drawLine((int)(cueLocation.getX() + cueStickNormal.getX()), (int)(cueLocation.getY() + cueStickNormal.getY()), 
+					   (int)(cueLocation.getX() + cueStick.getX()), (int)(cueLocation.getY() + cueStick.getY()));
+		}
 	}
 	
 	/**
