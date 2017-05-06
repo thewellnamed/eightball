@@ -62,9 +62,9 @@ public class Pocket extends CanvasObject
 				west.add(new Point2i(canvasBounds.y - 100, canvasBounds.y + 27));
 				holes.put(Canvas.WALL_WEST, west);
 				
-				x = new int[] { 72, 100, 127, 101, 101, 72 };
-				y = new int[] { 85, 60, 90, 90, 116, 85 }; 
-				poly = new Polygon(x, y, 6);
+				x = new int[] { 72, 100, 127, 101, 72 };
+				y = new int[] { 85, 60, 90, 116, 85 }; 
+				poly = new Polygon(x, y, 5);
 				break;
 				
 			case TOP_CENTER:
@@ -87,9 +87,9 @@ public class Pocket extends CanvasObject
 				east.add(new Point2i(canvasBounds.y - 100, canvasBounds.y + 26));
 				holes.put(Canvas.WALL_EAST, east);
 				
-				x = new int[] { 771, 799, 828, 799, 799, 771 };
-				y = new int[] { 90, 60, 89, 115, 90, 90 }; 
-				poly = new Polygon(x, y, 6);
+				x = new int[] { 771, 799, 828, 799, 771 };
+				y = new int[] { 90, 60, 89, 115, 90 }; 
+				poly = new Polygon(x, y, 5);
 				break;
 				
 			case BOTTOM_LEFT:
@@ -101,9 +101,9 @@ public class Pocket extends CanvasObject
 				west.add(new Point2i(canvasBounds.y + canvasBounds.height - 25, canvasBounds.y + canvasBounds.height + 100));
 				holes.put(Canvas.WALL_WEST, west);
 				
-				x = new int[] { 72, 101, 101, 128, 101, 72 };
-				y = new int[] { 440, 415, 440, 440, 466, 440 }; 
-				poly = new Polygon(x, y, 6);
+				x = new int[] { 72, 101, 128, 101, 72 };
+				y = new int[] { 440, 415, 440, 466, 440 }; 
+				poly = new Polygon(x, y, 5);
 				break;
 				
 			case BOTTOM_CENTER:
@@ -126,9 +126,9 @@ public class Pocket extends CanvasObject
 				east.add(new Point2i(canvasBounds.y + canvasBounds.height - 25, canvasBounds.y + canvasBounds.height + 100));
 				holes.put(Canvas.WALL_EAST, east);
 				
-				x = new int[] { 771, 799, 825, 799, 799, 771 };
-				y = new int[] { 440, 466, 444, 415, 440, 440 }; 
-				poly = new Polygon(x, y, 6);
+				x = new int[] { 771, 799, 825, 799, 771 };
+				y = new int[] { 440, 466, 444, 415, 440 }; 
+				poly = new Polygon(x, y, 5);
 				break;
 				
 			default:
@@ -192,6 +192,7 @@ public class Pocket extends CanvasObject
 			g.fillOval((int)loc.getX(), (int)loc.getY(), sz.width, sz.height);
 		}
 		
+		// rendering hints for canvas boundary holes and collision areas
 		if (DEBUG) {
 			g.setColor(Color.RED);
 			g.draw(poly);

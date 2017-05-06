@@ -34,7 +34,7 @@ public class BilliardsTable extends Canvas
 {
 	private BufferedImage background;
 	private BilliardBall cueBall;
-	private BilliardsTableMouseProcessor mouseProcessor;
+	private BilliardsTableUIProcessor uiProcessor;
 	private boolean shotInProgress;
 	private Set<BilliardBall> captured;
 	private Map<TableEventType, List<TableEventListener>> eventListeners;
@@ -59,8 +59,7 @@ public class BilliardsTable extends Canvas
 		initializeCanvasObjects();
 		createPhysicsModel();
 		
-		
-		mouseProcessor = new BilliardsTableMouseProcessor(this, cueBall);
+		uiProcessor = new BilliardsTableUIProcessor(this);
 						
 		// load background
 		try {
@@ -89,6 +88,10 @@ public class BilliardsTable extends Canvas
 		}
 	}
 	
+	public BilliardBall getCueBall() {
+		return cueBall;
+	}
+	
 	/**
 	 * Render table, balls, cue stick
 	 */
@@ -107,8 +110,8 @@ public class BilliardsTable extends Canvas
 		g.fillRect(canvasBounds.x, canvasBounds.y, canvasBounds.width, canvasBounds.height);
 		super.paintComponent(g);
 		
-		if (!shotInProgress && mouseProcessor != null) {
-			mouseProcessor.render(g);
+		if (!shotInProgress && uiProcessor != null) {
+			uiProcessor.render(g);
 		}
 	}
 	
@@ -129,7 +132,7 @@ public class BilliardsTable extends Canvas
 						cueBall.setLocation(new Point2D.Double(180, 260));
 						cueBall.setMovementVector(new Vector2d(0, 0));
 						cueBall.setSuspended(false);
-						mouseProcessor.beginCueballPlacement();
+						uiProcessor.beginCueballPlacement();
 					} else {
 						remove(ball);
 					}
