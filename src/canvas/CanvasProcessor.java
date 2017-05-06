@@ -3,6 +3,10 @@ package canvas;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+
+import javax.vecmath.Tuple2i;
 
 public interface CanvasProcessor {
 	
@@ -13,7 +17,7 @@ public interface CanvasProcessor {
 	 * @param objectCount average number of CanvasObjects to be processed
 	 * @return success or failure
 	 */
-	public boolean initialize(Rectangle bounds, Dimension objectSize, int objectCount);
+	public boolean initialize(Rectangle bounds, Map<Integer, Set<Tuple2i>> holes, Dimension objectSize, int objectCount);
 	
 	/**
 	 * Update position and movement vectors of CanvasObjects in Canvas

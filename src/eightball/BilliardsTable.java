@@ -1,22 +1,28 @@
 package eightball;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import javax.imageio.ImageIO;
 import javax.vecmath.Vector2d;
 
 import canvas.Canvas;
+import canvas.CanvasObject;
 import canvas.physics.*;
-import eightball.enums.BallType;
+import eightball.enums.*;
+import eightball.events.*;
 
 /**
  * BilliardsTable 
@@ -24,11 +30,14 @@ import eightball.enums.BallType;
  * Manages UI for player shot selection
  */
 @SuppressWarnings("serial")
-public class BilliardsTable extends Canvas {
+public class BilliardsTable extends Canvas 
+{
 	private BufferedImage background;
-	private MouseMotionListener mmListener;
-	private Point2D cursorPosition;
 	private BilliardBall cueBall;
+	private BilliardsTableMouseProcessor mouseProcessor;
+	private boolean shotInProgress;
+	private Set<BilliardBall> captured;
+	private Map<TableEventType, List<TableEventListener>> eventListeners;
 	
 	private static final Color canvasColor = new Color(0x0, 0xCC, 0x33);
 	
@@ -43,39 +52,16 @@ public class BilliardsTable extends Canvas {
 	 */
 	public BilliardsTable() {
 		setSize(900, 525);
-		setCanvasBounds(new Rectangle(100, 89, 700, 351));
+		setCanvasBounds(new Rectangle(100, 89, 700, 351)); // 100,89 to 800,440
 		setAnimationDelay(30); // 30 ms
+		eventListeners = new HashMap<TableEventType, List<TableEventListener>>();
 		
-		// BasicPhysics model
-		BasicPhysicsModel model = new BasicPhysicsModel();
-		model.setMaxCollisionPasses(MAX_COLLISION_PASSES);
+		initializeCanvasObjects();
+		createPhysicsModel();
 		
-		// Billiard Ball model
-		// TODO: We will *not* bounce off pockets...
-		CanvasObjectConfiguration ballConfig = new CanvasObjectConfiguration(COR_BALL_COLLISIONS, COEFFICIENT_BALL_FRICTION, CollisionType.BOUNCE);
-		ballConfig.addCollisionConfig(BilliardBall.canvasObjectType, new CollisionTypeConfiguration(CollisionType.BOUNCE, COR_BALL_COLLISIONS));
-		ballConfig.addCollisionConfig(Canvas.canvasObjectType, new CollisionTypeConfiguration(CollisionType.BOUNCE, COR_WALL_COLLISIONS));
-		model.addTypeConfig(BilliardBall.canvasObjectType, ballConfig);
 		
-		// TODO: Pocket model...
-		
-		BasicPhysicsCanvasProcessor processor = new BasicPhysicsCanvasProcessor(model);
-		processor.initialize(canvasBounds, BilliardBall.ballSize, 16);
-		setProcessor(processor);
-		
-		// Mouse Motion Listener
-		cursorPosition = new Point2D.Double(-1, -1);
-		mmListener = new MouseMotionListener() {
-			@Override
-			public void mouseMoved(MouseEvent e) {
-				cursorPosition.setLocation(e.getX(), e.getY());
-				repaint();
-			}
-			
-			public void mouseDragged(MouseEvent e) {}
-		};
-		addMouseMotionListener(mmListener);
-		
+		mouseProcessor = new BilliardsTableMouseProcessor(this, cueBall);
+						
 		// load background
 		try {
 			background = ImageIO.read(new File("resources/table.png"));	
@@ -84,12 +70,23 @@ public class BilliardsTable extends Canvas {
 		}
 	}
 	
-	public void add(BilliardBall b) {
-		if (b.getDefinition().getType() == BallType.CUE) {
-			cueBall = b;
+	/**
+	 * Attach an event listener
+	 */
+	public void addEventListener(TableEventType type, TableEventListener listener) {
+		if (!eventListeners.containsKey(type)) {
+			ArrayList<TableEventListener> listeners = new ArrayList<TableEventListener>();
+			listeners.add(listener);
+			eventListeners.put(type, listeners);
+		} else {
+			eventListeners.get(type).add(listener);
 		}
-		
-		super.add(b);
+	}
+	
+	public void removeEventListener(TableEventType type, TableEventListener listener) {
+		if (eventListeners.containsKey(type)) {
+			eventListeners.get(type).remove(listener);
+		}
 	}
 	
 	/**
@@ -110,19 +107,8 @@ public class BilliardsTable extends Canvas {
 		g.fillRect(canvasBounds.x, canvasBounds.y, canvasBounds.width, canvasBounds.height);
 		super.paintComponent(g);
 		
-		if (cueBall != null && cursorPosition.getX() >= 0) {
-			Point2D cueLocation = cueBall.getCenterPoint();
-			Vector2d cueStickNormal = new Vector2d(cursorPosition.getX() - cueLocation.getX(), cursorPosition.getY() - cueLocation.getY());
-			cueStickNormal.normalize();
-			
-			Vector2d cueStick = new Vector2d(cueStickNormal);
-			cueStick.scale(75);
-			cueStickNormal.scale(20);
-			
-			g.setColor(Color.BLACK);
-			g.setStroke(new BasicStroke(5));
-			g.drawLine((int)(cueLocation.getX() + cueStickNormal.getX()), (int)(cueLocation.getY() + cueStickNormal.getY()), 
-					   (int)(cueLocation.getX() + cueStick.getX()), (int)(cueLocation.getY() + cueStick.getY()));
+		if (!shotInProgress && mouseProcessor != null) {
+			mouseProcessor.render(g);
 		}
 	}
 	
@@ -131,10 +117,143 @@ public class BilliardsTable extends Canvas {
 	 */
 	@Override
 	protected void update() {
-		// TODO
-		// pass result of update() to Game to indicate end of a shot...
+		shotInProgress = processor.update(objects);
+		if (!shotInProgress) {
+			stop();
+			
+			if (captured.size() > 0) {
+				for (BilliardBall ball : captured) {
+					fireBallCapturedEvent(ball);
+					
+					if (ball.getDefinition().getType() == BallType.CUE) {
+						cueBall.setLocation(new Point2D.Double(180, 260));
+						cueBall.setMovementVector(new Vector2d(0, 0));
+						cueBall.setSuspended(false);
+						mouseProcessor.beginCueballPlacement();
+					} else {
+						remove(ball);
+					}
+				}
+			}
+			
+			captured.clear();
+			fireShotEndedEvent();
+		}
 		
-		processor.update(objects);
 		repaint(canvasBounds);
+	}	
+	
+	@Override
+	public void start() {
+		super.start();
+		fireShotBeginEvent();
+	}
+	
+	private void createPhysicsModel() {
+		BasicPhysicsModel model = new BasicPhysicsModel();
+		model.setMaxCollisionPasses(MAX_COLLISION_PASSES);
+		
+		// Billiard Ball model
+		CanvasObjectConfiguration ballConfig = new CanvasObjectConfiguration(COR_BALL_COLLISIONS, COEFFICIENT_BALL_FRICTION, CollisionType.BOUNCE);
+		ballConfig.addCollisionConfig(BilliardBall.canvasObjectType, CollisionTypeConfiguration.bounce(COR_BALL_COLLISIONS));
+		ballConfig.addCollisionConfig(Canvas.canvasObjectType, CollisionTypeConfiguration.bounce(COR_WALL_COLLISIONS));
+		ballConfig.addCollisionConfig(Pocket.canvasObjectType, CollisionTypeConfiguration.custom((a,b) -> checkAndProcessPocketCollision(a, b)));
+		model.addTypeConfig(BilliardBall.canvasObjectType, ballConfig);
+		
+		// Pocket model
+		CanvasObjectConfiguration pocketConfig = new CanvasObjectConfiguration(0, 0, CollisionType.NONE);
+		pocketConfig.addCollisionConfig(BilliardBall.canvasObjectType, CollisionTypeConfiguration.custom((a,b) -> checkAndProcessPocketCollision(a, b)));
+		model.addTypeConfig(Pocket.canvasObjectType, pocketConfig);
+		
+		BasicPhysicsCanvasProcessor processor = new BasicPhysicsCanvasProcessor(model);
+		processor.initialize(canvasBounds, canvasHoles, BilliardBall.ballSize, 16);
+		setProcessor(processor);
+	}
+	
+	private void initializeCanvasObjects() {
+		// Pockets
+		for (int i = 0; i < Pocket.NUMBER_POCKETS; i++) {
+			Pocket p = new Pocket(i, canvasBounds);
+			p.setCanvasHoles(canvasHoles);
+			add(p);
+		}
+		
+		// Cue ball
+		BilliardBall cue = new BilliardBall(BallDefinition.CUE);
+		cue.setLocation(new Point2D.Double(180, 260));
+		cue.setMovementVector(new Vector2d(32, -1));
+		cueBall = cue;
+		add(cue);
+		
+		// Standard Balls
+		int baseX = 560;
+		int baseY = 200;
+		int[] offsetX = { 0, 0, 26, 26, 52, 52, 52, 78, 78, 78, 78, 104, 104, 104, 104, 104};
+		int[] offsetY = { 0, 50, 38, 64, 25, 51, 76, 12, 38, 64, 90, 0, 26, 52, 78, 104 };
+		
+		for (int i = 1; i < 16; i++) {
+			BilliardBall b = new BilliardBall(BallDefinition.valueOf(i));
+			b.setLocation(new Point2D.Double(baseX + offsetX[i], baseY + offsetY[i]));
+			add(b);
+		}
+		
+		// Initialize collection for balls captured during shot
+		captured = new HashSet<BilliardBall>();
+	}
+	
+	/*
+	 * Used to process collisions between a Pocket and a ball, i.e to sink a ball
+	 */
+	private boolean checkAndProcessPocketCollision(CanvasObject a, CanvasObject b) {
+		BilliardBall ball;
+		Pocket pocket;
+		
+		if (a instanceof BilliardBall && b instanceof Pocket) {
+			ball = (BilliardBall) a;
+			pocket = (Pocket) b;
+		} else if (a instanceof Pocket && b instanceof BilliardBall) {
+			ball = (BilliardBall) b;
+			pocket = (Pocket) a;
+		} else {
+			return false;
+		}
+		
+		Point2D ballCenter = ball.getCenterPoint();
+		if (pocket.getArea().contains(ballCenter)) {
+			Point2D pocketLocation = pocket.getLocation();
+			
+			ball.setLocation(new Point2D.Double(pocketLocation.getX(), pocketLocation.getY()));
+			ball.setSuspended(true);
+			captured.add(ball);
+		} 
+		
+		return false;
+	}
+	
+	/*
+	 * Ball Captured Event
+	 */
+	private void fireBallCapturedEvent(BilliardBall b) {
+		for (TableEventListener listener : eventListeners.get(TableEventType.BALL_CAPTURED)) {
+			listener.fire(new TableEvent(TableEventType.BALL_CAPTURED, b));
+		}
+	}
+	
+	/*
+	 * Beginning shot event
+	 */
+	private void fireShotBeginEvent() {
+		for (TableEventListener listener : eventListeners.get(TableEventType.SHOT_BEGIN)) {
+			listener.fire(new TableEvent(TableEventType.SHOT_BEGIN, null));
+		}
+	}
+	
+	/*
+	 * End shot event
+	 */
+	private void fireShotEndedEvent() {
+		for (TableEventListener listener : eventListeners.get(TableEventType.SHOT_ENDED)) {
+			listener.fire(new TableEvent(TableEventType.SHOT_ENDED, null));
+		}
 	}
 }

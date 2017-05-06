@@ -19,6 +19,7 @@ import eightball.enums.*;
 public class BilliardBall extends CanvasObject
 {	
 	private BallDefinition ball;
+	private int suspendedRenderCount;
 	
 	public static Dimension ballSize = new Dimension(25, 25);
 	public static String canvasObjectType = "BilliardBall";
@@ -29,6 +30,7 @@ public class BilliardBall extends CanvasObject
 	public BilliardBall(BallDefinition b) {
 		super();
 		ball = b;
+		suspendedRenderCount = 0;
 		
 		// basic ball characteristics
 		setSize(ballSize);
@@ -42,10 +44,13 @@ public class BilliardBall extends CanvasObject
 		super(src);
 	}
 	
+	/**
+	 * Get Ball Definition
+	 * @return BallDefinition
+	 */
 	public BallDefinition getDefinition() {
 		return ball;
 	}
-	
 	
 	/**
 	 * CanvasObject Type used in Physics processor
@@ -53,6 +58,12 @@ public class BilliardBall extends CanvasObject
 	@Override
 	public String getType() {
 		return canvasObjectType;
+	}
+	
+	@Override
+	public void setSuspended(boolean value) {
+		suspended = value;	
+		if (!suspended) suspendedRenderCount = 0;
 	}
 	
 	/**
@@ -86,7 +97,7 @@ public class BilliardBall extends CanvasObject
 	 */
 	@Override
 	public String toString() {
-		return String.format("BilliardBall(%d)", ball.getNumber());
+		return String.format("BilliardBall(%s, %d)", ball.getType(), ball.getNumber());
 	}
 	
 	/**
@@ -94,6 +105,12 @@ public class BilliardBall extends CanvasObject
 	 */
 	@Override
 	public void draw(Graphics2D g) {
+		if (suspended) {
+			suspendedRenderCount++;
+			if (suspendedRenderCount > 2)
+				return;
+		}
+		
 		Rectangle2D bounds = getBounds();
 		Ellipse2D outline = new Ellipse2D.Double(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
 		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);

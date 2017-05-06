@@ -6,9 +6,12 @@ import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Collection;
+import java.util.Set;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
+import javax.vecmath.Tuple2i;
 import javax.vecmath.Vector2d;
 
 import canvas.*;
@@ -25,6 +28,7 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 	private double regionWidth;
 	private double regionHeight;
 	private Rectangle canvas;
+	private Map<Integer, Set<Tuple2i>> canvasHoles;
 	private Dimension objectSize;
 	private int expectedObjectCount;
 	private CollisionNode[] nodes;
@@ -43,8 +47,9 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 	 * Initialize processor
 	 * See CanvasProcessor
 	 */
-	public boolean initialize(Rectangle bounds, Dimension objSize, int objCount) {
+	public boolean initialize(Rectangle bounds, Map<Integer, Set<Tuple2i>> holes, Dimension objSize, int objCount) {
 		canvas = bounds;
+		canvasHoles = holes;
 		objectSize = objSize;
 		expectedObjectCount = objCount;
 		
@@ -91,6 +96,7 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 	 */
 	public boolean update(Collection<CanvasObject> objects) {
 		int pass = 0;
+		boolean inMotion = false;
 		boolean haveCollision = false;		
 		lastCollision.clear();
 		
@@ -126,9 +132,9 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 				
 			// Check for wall collisions
 			for (CanvasObject o : objects) {
-				// Only collide if type allows for it
+				// Only collide if type allows for it and this object is not suspended
 				CanvasObjectConfiguration config = model.getTypeConfig(o.getType());
-				if (config.getCollisionType(Canvas.canvasObjectType) != CollisionType.BOUNCE) {
+				if (o.getSuspended() || config.getCollisionType(Canvas.canvasObjectType) != CollisionType.BOUNCE) {
 					continue;
 				}
 				
@@ -139,21 +145,21 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 				int maxHeight = canvas.y + canvas.height - 1;
 
 				// check for wall collisions
-				if (desired.getX() > maxWidth - size.width) {
+				if (desired.getX() > maxWidth - size.width && !movingThroughCanvasHole(Canvas.WALL_EAST, desired, size)) {
 					collide(o, Canvas.WALL_EAST);
 					lastCollision.put(o, Canvas.WALL_EAST);
 					haveCollision = true;
-				} else if (desired.getX() < canvas.x) {
+				} else if (desired.getX() < canvas.x && !movingThroughCanvasHole(Canvas.WALL_WEST, desired, size)) {
 					collide(o, Canvas.WALL_WEST);
 					lastCollision.put(o, Canvas.WALL_WEST);
 					haveCollision = true;
 				}
 				
-				if (desired.getY() > maxHeight - size.height) {
+				if (desired.getY() > maxHeight - size.height && !movingThroughCanvasHole(Canvas.WALL_SOUTH, desired, size)) {
 					collide(o, Canvas.WALL_SOUTH);
 					lastCollision.put(o, Canvas.WALL_SOUTH);
 					haveCollision = true;
-				} else if (desired.getY() < canvas.y) {
+				} else if (desired.getY() < canvas.y && !movingThroughCanvasHole(Canvas.WALL_NORTH, desired, size)) {
 					collide(o, Canvas.WALL_NORTH);
 					lastCollision.put(o, Canvas.WALL_NORTH);
 					haveCollision = true;
@@ -167,21 +173,27 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 			
 			// apply friction
 			Vector2d mv = o.getMovementVector();
-			if (mv.length() > 0.25) {
+			if (!o.getSuspended() && mv.length() > 0.4) {
 				mv.scale(model.getTypeConfig(o.getType()).frictionCoefficient);
+				inMotion = true;
 			} else {
 				o.setMovementVector(new Vector2d(0, 0));
 			}
 		}
 		
-		return true;
+		return inMotion;
 	}	
+	
+
 	
 	/*
 	 * Add object to collision grid
 	 * May add a single object to up to four grid locations if it spans multiple nodes
 	 */
 	private void addObjectToCollisionGrid(CanvasObject o) {
+		if (o.getSuspended())
+			return;
+		
 		Dimension objSize = o.getSize();
 		Point2D objPosition = o.getNextLocation();
 		
@@ -246,13 +258,30 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 	 * Calls collide() if collision found
 	 */
 	private boolean checkAndProcessCollision(CanvasObject a, CanvasObject b) {
-		boolean haveCollision = false;
+		// don't collide suspended objects
+		if (a.getSuspended() || b.getSuspended()) {
+			return false;
+		}
 		
 		// check model to see if we can collide
 		CanvasObjectConfiguration config = model.getTypeConfig(a.getType());
-		if (config.getCollisionType(b.getType()) != CollisionType.BOUNCE)
+		if (config == null)
 			return false;
 		
+		CollisionType collisionType = config.getCollisionType(b.getType());
+		if (collisionType == CollisionType.BOUNCE) {
+			return checkBounce(a, b);
+		} else if (collisionType == CollisionType.CUSTOM) {
+			CustomCollisionListener listener = config.getCustomListener(b.getType());
+			if (listener != null) {
+				return listener.checkCollision(a, b);
+			}
+		}
+		
+		return false;
+	}
+	
+	private boolean checkBounce(CanvasObject a, CanvasObject b) {		
 		Vector2d aV = a.getMovementVector();
 		Vector2d bV = b.getMovementVector();
 		int aHash = a.hashCode();
@@ -275,10 +304,10 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 
 			lastCollision.put(a, bHash);
 			lastCollision.put(b, aHash);
-			haveCollision = true;
+			return true;
 		}
 		
-		return haveCollision;
+		return false;
 	}
 	
 	/*
@@ -377,6 +406,73 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 		
 		a.setLocation(aPosNew);
 		b.setLocation(bPosNew);
+	}
+	
+	/*
+	 * Check to see if we're moving through a hole in the canvas
+	 */
+	private boolean movingThroughCanvasHole(int wall, Point2D desired, Dimension size) {
+		boolean inHole = false;
+		Set<Tuple2i> holes = canvasHoles.get(wall);
+
+		for (Tuple2i hole : holes) {
+			int objectLocation = getCanvasObjectLocationForHole(wall, desired);
+			
+			if (objectLocation >= hole.x && objectLocation + getCanvasObjectSizeForHole(wall, size) <= hole.y) {
+				inHole = true;
+				break;
+			}
+		}
+		
+		return inHole;
+	}
+	
+	/*
+	 * Depending on which hole we are moving through, get either X or Y coordinate
+	 */
+	private int getCanvasObjectLocationForHole(int wall, Point2D desired) {
+		double result;
+		
+		switch (wall) {
+			case Canvas.WALL_NORTH:
+			case Canvas.WALL_SOUTH:
+				result = desired.getX();
+				break;
+				
+			case Canvas.WALL_EAST:
+			case Canvas.WALL_WEST:
+				result = desired.getY();
+				break;
+				
+			default:
+				throw new IllegalArgumentException(String.format("Unknown wall type: %d", wall));
+		}
+		
+		return (int)Math.round(result);
+	}
+	
+	/*
+	 * Depending on which hole we are moving through, get size in eitehr X or Y dimension
+	 */
+	private int getCanvasObjectSizeForHole(int wall, Dimension size) {
+		int result;
+		
+		switch (wall) {
+		case Canvas.WALL_NORTH:
+		case Canvas.WALL_SOUTH:
+			result = size.width;
+			break;
+			
+		case Canvas.WALL_EAST:
+		case Canvas.WALL_WEST:
+			result = size.height;
+			break;
+			
+		default:
+			throw new IllegalArgumentException(String.format("Unknown wall type: %d", wall));
+		}
+		
+		return result;
 	}
 
 	/*

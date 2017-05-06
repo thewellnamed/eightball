@@ -18,6 +18,7 @@ public abstract class CanvasObject
 	protected Vector2d movementVector;
 	protected double mass;
 	protected Color color;
+	protected boolean suspended;
 	
 	/**
 	 * Default constructor
@@ -190,10 +191,28 @@ public abstract class CanvasObject
 	}
 		
 	/**
+	 * Is processing suspended on this object
+	 * @return Boolean
+	 */
+	public boolean getSuspended() {
+		return suspended;
+	}
+	
+	/**
+	 * Set suspended state of object
+	 * @param suspend Boolean
+	 */
+	public void setSuspended(boolean suspend) {
+		suspended = suspend;
+	}
+	
+	/**
 	 * Incrementally update position based on movement vector
 	 */
 	public void move() {
-		bounds = getNextBounds();
+		if (!suspended) {
+			bounds = getNextBounds();
+		}
 	}
 	
 	/**

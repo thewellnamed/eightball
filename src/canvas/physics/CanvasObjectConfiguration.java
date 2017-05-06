@@ -61,4 +61,18 @@ public class CanvasObjectConfiguration {
 		
 		return config.coefficient;
 	}
+	
+	/**
+	 * Gets the custom action handler for collisions with the specified CanvasObject type
+	 * @param objectType Type of CanvasObject colliding with
+	 * @return CustomCollisionListener instance
+	 */
+	public CustomCollisionListener getCustomListener(String objectType) {
+		CollisionTypeConfiguration config = collisionConfig.get(objectType);
+		if (config == null) {
+			return null;
+		}
+		
+		return config.customAction;
+	}
 }

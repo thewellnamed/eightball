@@ -1,10 +1,6 @@
 package eightball;
 
-import java.awt.geom.Point2D;
-import javax.vecmath.Vector2d;
-
-import canvas.*;
-import eightball.enums.*;
+import eightball.events.*;
 
 /**
  * Track Eightball game state, manage table state
@@ -17,28 +13,9 @@ public class Game {
 	 */
 	public Game() {
 		table = new BilliardsTable();
-		initializeTable();
-	}
-	
-	/*
-	 * Place billiards in initial states
-	 */
-	private void initializeTable() {
-		int baseX = 560;
-		int baseY = 200;
-		int[] offsetX = { 0, 0, 26, 26, 52, 52, 52, 78, 78, 78, 78, 104, 104, 104, 104, 104};
-		int[] offsetY = { 0, 50, 38, 64, 25, 51, 76, 12, 38, 64, 90, 0, 26, 52, 78, 104 };
-		
-		for (int i = 1; i < 16; i++) {
-			BilliardBall b = new BilliardBall(BallDefinition.valueOf(i));
-			b.setLocation(new Point2D.Double(baseX + offsetX[i], baseY + offsetY[i]));
-			table.add(b);
-		}
-		
-		BilliardBall cue = new BilliardBall(BallDefinition.CUE);
-		cue.setLocation(new Point2D.Double(180, 260));
-		cue.setMovementVector(new Vector2d(32, -1));
-		table.add(cue);
+		table.addEventListener(TableEventType.BALL_CAPTURED, e -> onBallCaptured(e));
+		table.addEventListener(TableEventType.SHOT_BEGIN, e -> onShotBegin(e));
+		table.addEventListener(TableEventType.SHOT_ENDED, e -> onShotEnd(e));
 	}
 	
 	/**
@@ -49,17 +26,15 @@ public class Game {
 		return table;
 	}
 	
-	// These are going to go away...
-	public void start() {
-		table.start();
+	private void onShotBegin(TableEvent e) {
+		System.out.println("Shot begin");
 	}
 	
-	public void stop() {
-		table.stop();
+	private void onShotEnd(TableEvent e) {
+		System.out.println("Shot end");
 	}
 	
-	public void clear() {
-		table.clear();
-		initializeTable();
+	private void onBallCaptured(TableEvent e) {
+		System.out.printf("ball captured: %s\n", e.ball);
 	}
 }

@@ -4,10 +4,14 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import javax.swing.JComponent;
 import javax.swing.Timer;
+import javax.vecmath.Tuple2i;
 
 /**
  * Base Canvas class
@@ -20,6 +24,7 @@ public class Canvas extends JComponent
 	protected HashSet<CanvasObject> objects;
 	protected CanvasProcessor processor;
 	protected Rectangle canvasBounds;
+	protected Map<Integer, Set<Tuple2i>> canvasHoles;
 	private Timer animationTimer;
 	private int animationDelay;
 	
@@ -44,6 +49,7 @@ public class Canvas extends JComponent
 		objects = new HashSet<CanvasObject>();
 		processor = proc;
 		canvasBounds = getBounds();
+		canvasHoles = new HashMap<Integer, Set<Tuple2i>>();
 	}
 		
 	/**
@@ -117,6 +123,21 @@ public class Canvas extends JComponent
 	 */
 	public void setCanvasBounds(Rectangle bounds) {
 		canvasBounds = bounds;
+	}
+	
+	/**
+	 * Returns definition of holes to punch in canvas bounds, defined per side (NORTH, EAST, SOUTH, WEST)
+	 */
+	public Map<Integer, Set<Tuple2i>> getCanvasHoles() {
+		return canvasHoles;
+	}
+	
+	/**
+	 * Set canvas hole definition
+	 * @param holes Holes in canvas
+	 */
+	public void setCanvasHoles(Map<Integer, Set<Tuple2i>> holes) {
+		canvasHoles = holes;
 	}
 	
 	/**
