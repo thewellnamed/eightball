@@ -25,7 +25,9 @@ import eightball.events.TableEvent;
 import eightball.events.TableEventType;
 
 /**
- * Manages mouse events and rendering for scratch cueball placement, cuestick, and shot selection state model
+ * Manages mouse events and rendering for BilliardsTable
+ * Specifically manages state model for after-scratch cueball placement
+ * and CueStick rendering and shot selection
  */
 @SuppressWarnings("serial")
 public class BilliardsTableUIProcessor implements MouseMotionListener, MouseListener
@@ -42,9 +44,13 @@ public class BilliardsTableUIProcessor implements MouseMotionListener, MouseList
 	private static final int STATE_SELECT_CUE_STICK_ANGLE = 1;
 	private static final int STATE_SELECT_CUE_STICK_POWER = 2;
 	private static final int STATE_PLACE_CUE_BALL = 3;
-	private static final int MAX_SHOT_POWER = 40;
+	private static final int MAX_SHOT_POWER = 80;
 	private static final int MAX_SCRATCH_X_COORD = 140;
 	
+	/**
+	 * Constructor
+	 * @param tbl BilliardsTable to process
+	 */
 	public BilliardsTableUIProcessor(BilliardsTable tbl) {
 		table = tbl;
 		cueBall = table.getCueBall();
@@ -68,10 +74,25 @@ public class BilliardsTableUIProcessor implements MouseMotionListener, MouseList
 		});
 	}
 	
+	/**
+	 * Reset
+	 */
+	public void reset() {
+		state = STATE_NONE;
+		inShot = false;
+	}
+	
+	/**
+	 * Update the cueball
+	 * @param b BilliardBall
+	 */
 	public void setCueBall(BilliardBall b) {
 		cueBall = b;
 	}
 	
+	/**
+	 * Begin mouse-drop of cue-ball after scratch
+	 */
 	public void beginCueballPlacement() {
 		Point loc = MouseInfo.getPointerInfo().getLocation();
 		Dimension size = cueBall.getSize();
@@ -82,7 +103,11 @@ public class BilliardsTableUIProcessor implements MouseMotionListener, MouseList
 		cueBall.setLocation(new Point2D.Double(x, y));
 		state = STATE_PLACE_CUE_BALL;
 	}
-		
+	
+	/**
+	 * Render cuestick/cueball depending on state
+	 * @param g Graphics
+	 */
 	public void render(Graphics2D g) {
 		if (state == STATE_SELECT_CUE_STICK_ANGLE || state == STATE_SELECT_CUE_STICK_POWER) {
 			Point2D cueLocation = cueBall.getCenterPoint();
@@ -110,11 +135,13 @@ public class BilliardsTableUIProcessor implements MouseMotionListener, MouseList
 					   (int)(cueLocation.getX() - cueStick.getX()), (int)(cueLocation.getY() - cueStick.getY()));
 			
 			if (state == STATE_SELECT_CUE_STICK_POWER) {
+				int yOffset = cueStick.getY() > 0 ? -40 : 20;
+				
 				g.setStroke(new BasicStroke(1));
 				g.setColor(Color.BLACK);
-				g.fillRect((int)cueLocation.getX() - 40, (int)cueLocation.getY() + 20, 80, 20);
+				g.fillRect((int)cueLocation.getX() - 40, (int)cueLocation.getY() + yOffset, 80, 20);
 				g.setColor(Color.RED);
-				g.fillRect((int)cueLocation.getX() - 40, (int)cueLocation.getY() + 20, shotPower * 2, 20);
+				g.fillRect((int)cueLocation.getX() - 40, (int)cueLocation.getY() + yOffset, shotPower, 20);
 			}
 		}
 		
@@ -126,6 +153,9 @@ public class BilliardsTableUIProcessor implements MouseMotionListener, MouseList
 		}
 	}
 		
+	/*
+	 * Keyboard binding for escape key
+	 */
 	private void handleEscapeKey() {
 		switch (state) {
 			case STATE_NONE:
@@ -145,6 +175,9 @@ public class BilliardsTableUIProcessor implements MouseMotionListener, MouseList
 		table.repaint();
 	}
 	
+	/**
+	 * MouseMotionListener.mouseMoved implementation
+	 */
 	public void mouseMoved(MouseEvent e) {
 		if (state == STATE_SELECT_CUE_STICK_ANGLE) {
 			position.setLocation(e.getX(), e.getY());
@@ -161,12 +194,18 @@ public class BilliardsTableUIProcessor implements MouseMotionListener, MouseList
 		}
 	}
 	
-	// MouseListener implementation		
+	/**
+	 * MouseListener.mouseExited implementation
+	 */
 	public void mouseExited(MouseEvent e) {
 		table.repaint();
 	}
-	
+
+	/**
+	 * MouseListener.mouseClicked implementation
+	 */
 	public void mouseClicked(MouseEvent e) {
+		System.out.println("click");
 		if (inShot) return;
 		
 		switch (state) {
@@ -210,16 +249,23 @@ public class BilliardsTableUIProcessor implements MouseMotionListener, MouseList
 		}
 	}
 	
-	// unused event handlers
+	// unused mouse event handlers (MouseMotionListener, MouseListener)
 	public void mouseEntered(MouseEvent e) {}
 	public void mousePressed(MouseEvent e) {}
 	public void mouseReleased(MouseEvent e) {}
 	public void mouseDragged(MouseEvent e) {}
 	
+	/*
+	 * Track whether the table is processing a shot
+	 * overrides state model
+	 */
 	private void handleShotEvent(TableEvent e) {
 		inShot = (e.type == TableEventType.SHOT_BEGIN);
 	}
 	
+	/*
+	 * Set power for next shot
+	 */
 	private void updateShotPower() {
 		shotPower++;
 		if (shotPower > MAX_SHOT_POWER)
@@ -227,6 +273,9 @@ public class BilliardsTableUIProcessor implements MouseMotionListener, MouseList
 		table.repaint();
 	}
 	
+	/*
+	 * Helper method for rendering
+	 */
 	private Vector2d getShotNormalVector() {
 		Point2D cueLocation = cueBall.getCenterPoint();
 		Vector2d cueStickNormal = new Vector2d(position.getX() - cueLocation.getX(), position.getY() - cueLocation.getY());

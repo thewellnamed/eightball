@@ -81,6 +81,7 @@ public enum BallDefinition {
 	
 	/*
 	 * Create map for use by valueOf()
+	 * cf. http://stackoverflow.com/questions/11047756/getting-enum-associated-with-int-value
 	 */
 	private static Map<Integer, BallDefinition> typeMap = new HashMap<Integer, BallDefinition>();
 	static {

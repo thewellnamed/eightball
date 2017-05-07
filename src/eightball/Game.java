@@ -139,38 +139,64 @@ public class Game {
 		}
 	}	
 	
-	// GameEvent helpers...
+	/*
+	 * Update status message
+	 */
 	private void updateStatusMessage(String message) {
 		fireGameEvent(GameEventType.STATUS_MESSAGE, message);
 	}
 	
+	/*
+	 * Update Info message
+	 */
 	private void updateGameInfo(String info) {
 		fireGameEvent(GameEventType.INFO_MESSAGE, info);
 	}
 	
+	/*
+	 * Fire Event
+	 */
 	private void fireGameEvent(GameEventType type) {
 		fireGameEvent(type, null);
 	}
 	
+	/*
+	 * Fire Event
+	 */
 	private void fireGameEvent(GameEventType type, String message) {
 		for (GameEventListener listener : eventListeners.get(type)) {
 			listener.fire(new GameEvent(type, message));
 		}
 	}
 	
-	// TableEvent callbacks
+	/*
+	 * TableEventTYPE.REQUEST_PAUSE
+	 * Translated into GameEventType.REQUEST_PAUSE
+	 */
 	private void onRequestPause() {
 		fireGameEvent(GameEventType.REQUEST_PAUSE);
 	}
 	
+	/*
+	 * TableEventType.CUE_BALL_PLACEMENT_BEGIN
+	 * Scratch handling
+	 */
 	private void onCueBallPlacementBegin(TableEvent e) {
 		updateStatusMessage("Scratch! Place the cueball to continue...");
 	}
 	
+	/*
+	 * TableEventType.CUE_BALL_PLACEMENT_END
+	 * Scratch handling
+	 */
 	private void onCueBallPlacementEnd(TableEvent e) {
 		updateStatusMessage("Click the table to shoot...");
 	}
 	
+	/*
+	 * TableEventType.SHOT_BEGIN
+	 * Reset state for next shot...
+	 */
 	private void onShotBegin(TableEvent e) {
 		updateStatusMessage("Shot in progress...");
 		capturedThisTurn.clear();
@@ -178,6 +204,10 @@ public class Game {
 		eightballCaptured = false;
 	}
 	
+	/*
+	 * TableEventType.BALL_CAPTURED
+	 * A ball has been removed from the table
+	 */
 	private void onBallCaptured(TableEvent e) {
 		BallType type = e.ball.getDefinition().getType();
 		
@@ -204,6 +234,11 @@ public class Game {
 		}
 	}	
 	
+	/*
+	 * TableEventType.SHOT_ENDED
+	 * Main game logic
+	 * After each shot, we update the game state
+	 */
 	private void onShotEnd(TableEvent e) {
 		if (!singlePlayer) {			
 			// determine which player owns which balls..
@@ -247,13 +282,13 @@ public class Game {
 							(firstPlayersTurn ? "Player Two" : "Player One")));
 				} else {
 					updateStatusMessage(String.format("%s wins!",
-							(firstPlayersTurn ? "Player One" : "Player Two")));
+							(firstPlayersTurn ? "Player one" : "Player Two")));
 				}
 				fireGameEvent(GameEventType.GAME_OVER);
 			} else {			
 				if (success) {	
-					updateStatusMessage(String.format("%s captured: %s! Continue shooting...", 
-							(firstPlayersTurn ? "P1" : "P2"), String.join(",", myCaptures)));
+					updateStatusMessage(String.format("%s captured: %s. Continue shooting...", 
+							(firstPlayersTurn ? "Player One" : "Player Two"), String.join(",", myCaptures)));
 				} else {
 					firstPlayersTurn = !firstPlayersTurn;
 					if (!scratch) {
@@ -264,7 +299,11 @@ public class Game {
 		} else {
 			ArrayList<String> myCaptures = new ArrayList<String>();
 			
-			if (capturedThisTurn.size() > 0) {
+			if (table.getObjects().size() <= Pocket.NUMBER_POCKETS + 1) {
+				haveWinner = true;
+				updateStatusMessage("Well done!");
+				fireGameEvent(GameEventType.GAME_OVER);
+			} else if (capturedThisTurn.size() > 0) {
 				for (BilliardBall b : capturedThisTurn) {
 					myCaptures.add(String.format("(%d)", b.getDefinition().getNumber()));
 				}
@@ -281,6 +320,9 @@ public class Game {
 		setGameInfo();
 	}
 	
+	/*
+	 * Add captured ball to local collection
+	 */
 	private void capture(BilliardBall b) {
 		BallType type = b.getDefinition().getType();
 		
@@ -293,6 +335,9 @@ public class Game {
 		}
 	}
 	
+	/*
+	 * Update the statusbar information message
+	 */
 	private void setGameInfo() {
 		if (singlePlayer) {
 			updateGameInfo("Score: " + score);

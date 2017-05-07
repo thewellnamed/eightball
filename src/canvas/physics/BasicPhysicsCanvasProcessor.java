@@ -18,6 +18,7 @@ import canvas.*;
 
 /**
  * Movement and Collision Processing using basic physics engine for CanvasObjects in Canvas
+ * Configured using BasicPhysicsModel
  */
 @SuppressWarnings("serial")
 public class BasicPhysicsCanvasProcessor implements CanvasProcessor
@@ -184,8 +185,6 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 		return inMotion;
 	}	
 	
-
-	
 	/*
 	 * Add object to collision grid
 	 * May add a single object to up to four grid locations if it spans multiple nodes
@@ -281,6 +280,9 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 		return false;
 	}
 	
+	/*
+	 * Check for CollisionType.BOUNCE
+	 */
 	private boolean checkBounce(CanvasObject a, CanvasObject b) {		
 		Vector2d aV = a.getMovementVector();
 		Vector2d bV = b.getMovementVector();
@@ -321,10 +323,12 @@ public class BasicPhysicsCanvasProcessor implements CanvasProcessor
 	}
 	
 	/*
-	 * Perform collision between two objects
+	 * Perform bounce between two objects
+	 * cf. http://vobarian.com/collisions/2dcollisions2.pdf
+	 * Also inspiration from here: 
+	 *    http://stackoverflow.com/questions/9424459/calculate-velocity-and-direction-of-a-ball-to-ball-collision-based-on-mass-and-b
 	 */
 	private void collide(CanvasObject a, CanvasObject b) {
-		// logic can be found here: http://vobarian.com/collisions/2dcollisions2.pdf
 		Vector2d unitNormalVector = getNormalizedCollisionVector(a, b);
 		Vector2d unitTangentVector = new Vector2d(unitNormalVector.y, -unitNormalVector.x); 
 		Vector2d aVector = a.getMovementVector();

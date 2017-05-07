@@ -19,7 +19,8 @@ public abstract class CanvasObject implements Comparable<CanvasObject>
 	protected double mass;
 	protected Color color;
 	protected boolean suspended;
-	protected int canvasOrder; // rendering order allows overlapping objects
+	protected int canvasOrder; 	// sort order for Canvas collection
+							   	// allows ordered rendering where necessary
 	
 	/**
 	 * Default constructor
@@ -58,6 +59,22 @@ public abstract class CanvasObject implements Comparable<CanvasObject>
 	public void setColor(Color c) {
 		color = c;
 	}	
+	
+	/**
+	 * Is processing suspended on this object
+	 * @return Boolean
+	 */
+	public boolean getSuspended() {
+		return suspended;
+	}
+	
+	/**
+	 * Set suspended state of object
+	 * @param suspend Boolean
+	 */
+	public void setSuspended(boolean suspend) {
+		suspended = suspend;
+	}
 	
 	/**
 	 * @return Point containing x,y coordinates of object in canvas
@@ -192,23 +209,7 @@ public abstract class CanvasObject implements Comparable<CanvasObject>
 		overlap.intersect(o.getArea());
 		return overlap;
 	}
-		
-	/**
-	 * Is processing suspended on this object
-	 * @return Boolean
-	 */
-	public boolean getSuspended() {
-		return suspended;
-	}
-	
-	/**
-	 * Set suspended state of object
-	 * @param suspend Boolean
-	 */
-	public void setSuspended(boolean suspend) {
-		suspended = suspend;
-	}
-	
+			
 	/**
 	 * Incrementally update position based on movement vector
 	 */

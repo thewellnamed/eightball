@@ -1,5 +1,8 @@
 package eightball.events;
 
+/**
+ * Table Event types
+ */
 public enum TableEventType {
 	CUE_BALL_PLACEMENT_BEGIN,
 	CUE_BALL_PLACEMENT_END,

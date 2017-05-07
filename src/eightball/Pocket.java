@@ -18,6 +18,10 @@ import javax.vecmath.Tuple2i;
 import canvas.Canvas;
 import canvas.CanvasObject;
 
+/**
+ * Billiard table pockets
+ * Definitions for placement and canvas hole data used by table
+ */
 public class Pocket extends CanvasObject 
 {
 	private Polygon poly;
@@ -35,8 +39,15 @@ public class Pocket extends CanvasObject
 	protected static final int BOTTOM_RIGHT = 5;
 	protected static final int NUMBER_POCKETS = 6;
 	
-	private static final boolean DEBUG = false;
+	// if true, adds additional rendering
+	// useful for tweaking mechanics of balls sinking
+	private static final boolean DEBUG = false; 
 	
+	/**
+	 * Constructor
+	 * @param pocketPosition Which Pocket is this? (TOP_LEFT ... BOTTOM_RIGHT)
+	 * @param bounds Canvas rectangle
+	 */
 	public Pocket(int pocketPosition, Rectangle bounds) {
 		super();
 		
@@ -139,6 +150,7 @@ public class Pocket extends CanvasObject
 	
 	/**
 	 * Add canvas holes for this pocket to a collection
+	 * Used by BilliardsTable
 	 */
 	public void setCanvasHoles(Map<Integer, Set<Tuple2i>> canvasHoles) {		
 		for (int i : holes.keySet()) {
@@ -163,27 +175,43 @@ public class Pocket extends CanvasObject
 		return canvasObjectType;
 	}
 	
+	/**
+	 * Since we don't move, getNextLocation is just getLocation...
+	 */
 	@Override
 	public Point2D getNextLocation() {
 		return getLocation();
 	}
 	
+	/**
+	 * Override collision area with custom pocket polygon
+	 * Determines where a ball needs to get to in order to sink
+	 */
 	@Override
 	public Area getAreaForCollision() {
 		return new Area(poly);
 	}
 	
+	/**
+	 * Not implemented
+	 */
 	@Override
 	public CanvasObject clone() {
 		// not implemented
 		return null;
 	}
 
+	/**
+	 * Pockets don't move...
+	 */
 	@Override
 	public void move() {
-		// pockets don't move
 	}
 	
+	/**
+	 * Render 
+	 * Normally only fills in black circle which is partially overwritten by canvas Rectangle...
+	 */
 	@Override
 	public void draw(Graphics2D g) {
 		if (type != TOP_CENTER && type != BOTTOM_CENTER) {

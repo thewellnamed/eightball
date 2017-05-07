@@ -8,6 +8,9 @@ import java.util.Set;
 
 import javax.vecmath.Tuple2i;
 
+/**
+ * CanvasProcessor interface
+ */
 public interface CanvasProcessor {
 	
 	/**

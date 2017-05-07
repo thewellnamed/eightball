@@ -61,6 +61,9 @@ public class BilliardBall extends CanvasObject
 		return canvasObjectType;
 	}
 	
+	/**
+	 * Suspend processing
+	 */
 	@Override
 	public void setSuspended(boolean value) {
 		suspended = value;	
@@ -108,7 +111,7 @@ public class BilliardBall extends CanvasObject
 	public void draw(Graphics2D g) {
 		if (suspended) {
 			suspendedRenderCount++;
-			if (suspendedRenderCount > 2)
+			if (suspendedRenderCount > 5)
 				return;
 		}
 		
@@ -152,6 +155,9 @@ public class BilliardBall extends CanvasObject
 		}
 	}
 	
+	/*
+	 * Helper method for ball drawing
+	 */
 	private void drawBallNumber(Graphics2D g) {
 		Font currentFont = g.getFont();
 		Font newFont = currentFont.deriveFont(10F);

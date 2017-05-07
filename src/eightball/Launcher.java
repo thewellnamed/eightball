@@ -2,6 +2,9 @@ package eightball;
 
 import javax.swing.JFrame;
 
+/**
+ * Eightball launcher
+ */
 public class Launcher {
 	/**
 	 * Launch application

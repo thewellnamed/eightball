@@ -96,6 +96,7 @@ public class Canvas extends JComponent
 	}
 	
 	/**
+	 * get CanvasProcessor implementation
 	 * @return CanvasProcessor
 	 */
 	public CanvasProcessor getProcessor() {

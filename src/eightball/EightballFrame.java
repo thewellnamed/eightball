@@ -19,7 +19,7 @@ import eightball.events.GameEvent;
 import eightball.events.GameEventType;
 
 /**
- * Main Game Frame
+ * Main Eightball Game JFrame and UI
  */
 @SuppressWarnings("serial")
 public class EightballFrame extends JFrame 
@@ -61,6 +61,9 @@ public class EightballFrame extends JFrame
 		pause(false);
 	}
 	
+	/*
+	 * Create the status bar
+	 */
 	private void createStatusBar() {		
 		statusPanel = new JPanel();
 		statusPanel.setBorder(BorderFactory.createEmptyBorder(0,15,4,15));
@@ -83,6 +86,9 @@ public class EightballFrame extends JFrame
 		add(statusPanel, BorderLayout.SOUTH);
 	}	
 	
+	/*
+	 * Create a floating control panel with context-dependent options
+	 */
 	private JPanel createControlPanel() {
 		JPanel panel = new JPanel();
 		boolean inProgress = game.inProgress();
@@ -135,16 +141,25 @@ public class EightballFrame extends JFrame
 		return panel;
 	}
 	
+	/*
+	 * Reset game
+	 */
 	private void reset() {
 		game.reset();
 		pause(true);		
 	}
 	
+	/*
+	 * Begin game with specified players
+	 */
 	private void initializeWithPlayers(int players) {
 		game.begin(players);
 		unpause();
 	}
 	
+	/*
+	 * GameEvent callback for status messages
+	 */
 	private void updateStatus(GameEvent e) {
 		if (e.type == GameEventType.STATUS_MESSAGE) {
 			messageLabel.setText(e.text);
@@ -153,10 +168,18 @@ public class EightballFrame extends JFrame
 		}
 	}
 	
+	/*
+	 * GameEvent callback for end of game
+	 */
 	private void gameOver(GameEvent e) {
+		// force control panel update
 		pause(true);
 	}
 	
+	/*
+	 * Pause game
+	 * @param forceReset -- if true we will re-create control panel regardless of current state
+	 */
 	private void pause(boolean forceReset) {
 		if (!showingControlPanel || forceReset) {
 			if (forceReset && controlPanel != null) {
@@ -171,6 +194,9 @@ public class EightballFrame extends JFrame
 		}
 	}
 	
+	/*
+	 * Unpause game
+	 */
 	private void unpause() {
 		if (showingControlPanel) {
 			layeredPane.remove(controlPanel);

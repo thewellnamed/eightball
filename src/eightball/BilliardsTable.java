@@ -26,7 +26,6 @@ import eightball.events.*;
 /**
  * BilliardsTable 
  * Implements Canvas with a BasicPhysics model for collisions
- * Manages UI for player shot selection
  */
 @SuppressWarnings("serial")
 public class BilliardsTable extends Canvas 
@@ -59,6 +58,8 @@ public class BilliardsTable extends Canvas
 		initializeCanvasObjects();
 		createPhysicsModel();
 		
+		// mouse and keyboard events
+		// cue stick and scratch handling via mouse
 		uiProcessor = new BilliardsTableUIProcessor(this);
 						
 		// load background
@@ -68,17 +69,48 @@ public class BilliardsTable extends Canvas
 			System.out.println("Unable to load background...");
 		}
 	}
+		
+	/**
+	 * Begin play
+	 */
+	public void begin() {
+		unpause();
+		uiProcessor.beginCueballPlacement();
+		repaint();
+	}
 	
+	/**
+	 * Reset table
+	 */
+	public void reset() {
+		stop();
+		clear();
+		initializeCanvasObjects();
+		uiProcessor.reset();
+		uiProcessor.setCueBall(cueBall);
+		shotInProgress = false;
+		repaint();
+	}
+	
+	/**
+	 * Request pause
+	 */
 	public void requestPause() {
 		fireTableEvent(TableEventType.REQUEST_PAUSE);
 	}
 	
+	/**
+	 * Execute pause
+	 */
 	public void pause() {
 		paused = true;
 		stop();
 		repaint();
 	}
 	
+	/**
+	 * Unpause
+	 */
 	public void unpause() {
 		paused = false;
 		
@@ -89,25 +121,18 @@ public class BilliardsTable extends Canvas
 		}
 	}
 	
+	/**
+	 * Are we paused?
+	 * @return boolean
+	 */
 	public boolean isPaused() {
 		return paused;
 	}
 	
-	public void begin() {
-		unpause();
-		uiProcessor.beginCueballPlacement();
-		repaint();
-	}
-	
-	public void reset() {
-		clear();
-		initializeCanvasObjects();
-		uiProcessor.setCueBall(cueBall);
-		repaint();
-	}
-	
 	/**
-	 * Attach an event listener
+	 * Attach a TableEvent listener
+	 * @param type TableEventType
+	 * @param listener TableEventListener
 	 */
 	public void addEventListener(TableEventType type, TableEventListener listener) {
 		if (!eventListeners.containsKey(type)) {
@@ -119,12 +144,21 @@ public class BilliardsTable extends Canvas
 		}
 	}
 	
+	/**
+	 * Remove a TableEvent listener
+	 * @param type TableEvent type
+	 * @param listener TableEventListener
+	 */
 	public void removeEventListener(TableEventType type, TableEventListener listener) {
 		if (eventListeners.containsKey(type)) {
 			eventListeners.get(type).remove(listener);
 		}
 	}
 	
+	/**
+	 * Get the cue ball
+	 * @return BilliardBall (BallType.CUE)
+	 */
 	public BilliardBall getCueBall() {
 		return cueBall;
 	}
@@ -188,12 +222,19 @@ public class BilliardsTable extends Canvas
 		repaint(canvasBounds);
 	}	
 	
+	/**
+	 * Start animation timer
+	 */
 	@Override
 	public void start() {
 		super.start();
 		fireTableEvent(TableEventType.SHOT_BEGIN);
 	}
 	
+	/*
+	 * Create the BasicPhysicsModel
+	 * and create a BasicPhysicsCanvasProcessor for the table
+	 */
 	private void createPhysicsModel() {
 		BasicPhysicsModel model = new BasicPhysicsModel();
 		model.setMaxCollisionPasses(MAX_COLLISION_PASSES);
@@ -215,6 +256,9 @@ public class BilliardsTable extends Canvas
 		setProcessor(processor);
 	}
 	
+	/*
+	 * Creates the pockets and billiard balls at initial positions
+	 */
 	private void initializeCanvasObjects() {
 		// Pockets
 		for (int i = 0; i < Pocket.NUMBER_POCKETS; i++) {
@@ -282,6 +326,9 @@ public class BilliardsTable extends Canvas
 		fireTableEvent(type, null);
 	}
 	
+	/*
+	 * Fire table event
+	 */
 	protected void fireTableEvent(TableEventType type, BilliardBall b) {
 		for (TableEventListener listener : eventListeners.get(type)) {
 			listener.fire(new TableEvent(type, b));
