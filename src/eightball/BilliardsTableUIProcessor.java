@@ -205,7 +205,6 @@ public class BilliardsTableUIProcessor implements MouseMotionListener, MouseList
 	 * MouseListener.mouseClicked implementation
 	 */
 	public void mouseClicked(MouseEvent e) {
-		System.out.println("click");
 		if (inShot) return;
 		
 		switch (state) {
