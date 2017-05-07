@@ -26,6 +26,11 @@ public class Game {
 		return table;
 	}
 	
+	public void newGame(int players) {
+		table.reset();
+		table.initialize();
+	}
+	
 	private void onShotBegin(TableEvent e) {
 		System.out.println("Shot begin");
 	}

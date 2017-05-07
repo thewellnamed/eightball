@@ -46,6 +46,7 @@ public class Pocket extends CanvasObject
 		canvasBounds = bounds;
 		setSize(new Dimension(38, 38));
 		holes = new HashMap<Integer, Set<Tuple2i>>();
+		canvasOrder = pocketPosition;
 		
 		HashSet<Tuple2i> north = new HashSet<Tuple2i>();
 		HashSet<Tuple2i> east = new HashSet<Tuple2i>();

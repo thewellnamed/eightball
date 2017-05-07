@@ -43,7 +43,7 @@ public class BilliardsTableUIProcessor implements MouseMotionListener, MouseList
 	private static final int STATE_SELECT_CUE_STICK_POWER = 2;
 	private static final int STATE_PLACE_CUE_BALL = 3;
 	private static final int MAX_SHOT_POWER = 40;
-	private static final int MAX_SCRATCH_X_COORD = 200;
+	private static final int MAX_SCRATCH_X_COORD = 140;
 	
 	public BilliardsTableUIProcessor(BilliardsTable tbl) {
 		table = tbl;
@@ -66,6 +66,10 @@ public class BilliardsTableUIProcessor implements MouseMotionListener, MouseList
 				handleEscapeKey();
 			}
 		});
+	}
+	
+	public void setCueBall(BilliardBall b) {
+		cueBall = b;
 	}
 	
 	public void beginCueballPlacement() {

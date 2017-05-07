@@ -1,6 +1,7 @@
 package eightball;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -38,6 +39,7 @@ public class BilliardsTable extends Canvas
 	private boolean shotInProgress;
 	private Set<BilliardBall> captured;
 	private Map<TableEventType, List<TableEventListener>> eventListeners;
+	private boolean initialized;
 	
 	private static final Color canvasColor = new Color(0x0, 0xCC, 0x33);
 	
@@ -51,7 +53,7 @@ public class BilliardsTable extends Canvas
 	 * Constructor
 	 */
 	public BilliardsTable() {
-		setSize(900, 525);
+		setPreferredSize(new Dimension(900, 525));
 		setCanvasBounds(new Rectangle(100, 89, 700, 351)); // 100,89 to 800,440
 		setAnimationDelay(30); // 30 ms
 		eventListeners = new HashMap<TableEventType, List<TableEventListener>>();
@@ -67,6 +69,19 @@ public class BilliardsTable extends Canvas
 		} catch (IOException e) {
 			System.out.println("Unable to load background...");
 		}
+	}
+	
+	public void initialize() {
+		initialized = true;
+		uiProcessor.beginCueballPlacement();
+		repaint();
+	}
+	
+	public void reset() {
+		initialized = false;
+		clear();
+		initializeCanvasObjects();
+		uiProcessor.setCueBall(cueBall);
 	}
 	
 	/**
@@ -110,8 +125,13 @@ public class BilliardsTable extends Canvas
 		g.fillRect(canvasBounds.x, canvasBounds.y, canvasBounds.width, canvasBounds.height);
 		super.paintComponent(g);
 		
-		if (!shotInProgress && uiProcessor != null) {
+		if (initialized && !shotInProgress && uiProcessor != null) {
 			uiProcessor.render(g);
+		}
+		
+		if (!initialized) {
+			g.setColor(new Color(0, 0, 0, 0.4F));
+			g.fillRect(0, 0, getWidth(), getHeight());
 		}
 	}
 	
@@ -123,7 +143,7 @@ public class BilliardsTable extends Canvas
 		shotInProgress = processor.update(objects);
 		if (!shotInProgress) {
 			stop();
-			
+
 			if (captured.size() > 0) {
 				for (BilliardBall ball : captured) {
 					fireBallCapturedEvent(ball);

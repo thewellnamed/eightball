@@ -5,9 +5,9 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.swing.JComponent;
 import javax.swing.Timer;
@@ -21,7 +21,7 @@ import javax.vecmath.Tuple2i;
 @SuppressWarnings("serial")
 public class Canvas extends JComponent
 {
-	protected HashSet<CanvasObject> objects;
+	protected TreeSet<CanvasObject> objects;
 	protected CanvasProcessor processor;
 	protected Rectangle canvasBounds;
 	protected Map<Integer, Set<Tuple2i>> canvasHoles;
@@ -46,7 +46,7 @@ public class Canvas extends JComponent
 	 * Constructor
 	 */
 	public Canvas(CanvasProcessor proc) {
-		objects = new HashSet<CanvasObject>();
+		objects = new TreeSet<CanvasObject>();
 		processor = proc;
 		canvasBounds = getBounds();
 		canvasHoles = new HashMap<Integer, Set<Tuple2i>>();

@@ -12,13 +12,14 @@ import javax.vecmath.Vector2d;
  * Base class for objects which can be rendered in Canvas
  * Manages the position, linear movement, and rendering of each canvas object
  */
-public abstract class CanvasObject
+public abstract class CanvasObject implements Comparable<CanvasObject>
 {
 	protected Rectangle2D.Double bounds;
 	protected Vector2d movementVector;
 	protected double mass;
 	protected Color color;
 	protected boolean suspended;
+	protected int canvasOrder; // rendering order allows overlapping objects
 	
 	/**
 	 * Default constructor
@@ -28,6 +29,7 @@ public abstract class CanvasObject
 		movementVector = new Vector2d(0, 0);
 		mass = 1;
 		color = Color.BLACK;
+		canvasOrder = 0;
 	}
 	
 	/**
@@ -39,6 +41,7 @@ public abstract class CanvasObject
 		setMovementVector(src.getMovementVector());
 		setColor(src.getColor());
 		setMass(src.getMass());
+		setCanvasOrder(src.getCanvasOrder());
 	}
 	
 	/**
@@ -233,6 +236,29 @@ public abstract class CanvasObject
 	public String getType() {
 		return "CanvasObject";
 	};
+	
+	/**
+	 * Sort order for canvas collection, determines rendering order
+	 * @return int
+	 */
+	public int getCanvasOrder() {
+		return canvasOrder;
+	}
+	
+	/**
+	 * Set canvas sort order
+	 * @param order Relative sort order
+	 */
+	public void setCanvasOrder(int order) {
+		canvasOrder = order;
+	}
+	
+	/**
+	 * Comparable implementation
+	 */
+	public int compareTo(CanvasObject o) {
+		return canvasOrder - o.canvasOrder;
+	}
 	
 	/**
 	 * toString() override

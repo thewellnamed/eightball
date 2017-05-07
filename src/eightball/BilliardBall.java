@@ -31,6 +31,7 @@ public class BilliardBall extends CanvasObject
 		super();
 		ball = b;
 		suspendedRenderCount = 0;
+		canvasOrder = b.getNumber() + 6; // render balls after pockets
 		
 		// basic ball characteristics
 		setSize(ballSize);
