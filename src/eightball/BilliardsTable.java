@@ -64,6 +64,8 @@ public class BilliardsTable extends Canvas
 						
 		// load background
 		try {
+			// image adapted from source here:
+			// http://www.bezzmedia.com/swfspot/tutorials/flash8/8_Ball_Pool
 			background = ImageIO.read(new File("resources/table.png"));	
 		} catch (IOException e) {
 			System.out.println("Unable to load background...");
