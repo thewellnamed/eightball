@@ -11,10 +11,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.imageio.ImageIO;
 import javax.vecmath.Vector2d;
@@ -37,9 +35,9 @@ public class BilliardsTable extends Canvas
 	private BilliardBall cueBall;
 	private BilliardsTableUIProcessor uiProcessor;
 	private boolean shotInProgress;
-	private Set<BilliardBall> captured;
+	private List<BilliardBall> captured;
 	private Map<TableEventType, List<TableEventListener>> eventListeners;
-	private boolean initialized;
+	private boolean paused;
 	
 	private static final Color canvasColor = new Color(0x0, 0xCC, 0x33);
 	
@@ -71,17 +69,41 @@ public class BilliardsTable extends Canvas
 		}
 	}
 	
-	public void initialize() {
-		initialized = true;
+	public void requestPause() {
+		fireTableEvent(TableEventType.REQUEST_PAUSE);
+	}
+	
+	public void pause() {
+		paused = true;
+		stop();
+		repaint();
+	}
+	
+	public void unpause() {
+		paused = false;
+		
+		if (shotInProgress) {
+			start();
+		} else {
+			repaint();
+		}
+	}
+	
+	public boolean isPaused() {
+		return paused;
+	}
+	
+	public void begin() {
+		unpause();
 		uiProcessor.beginCueballPlacement();
 		repaint();
 	}
 	
 	public void reset() {
-		initialized = false;
 		clear();
 		initializeCanvasObjects();
 		uiProcessor.setCueBall(cueBall);
+		repaint();
 	}
 	
 	/**
@@ -125,11 +147,11 @@ public class BilliardsTable extends Canvas
 		g.fillRect(canvasBounds.x, canvasBounds.y, canvasBounds.width, canvasBounds.height);
 		super.paintComponent(g);
 		
-		if (initialized && !shotInProgress && uiProcessor != null) {
+		if (!paused && !shotInProgress && uiProcessor != null) {
 			uiProcessor.render(g);
 		}
 		
-		if (!initialized) {
+		if (paused) {
 			g.setColor(new Color(0, 0, 0, 0.4F));
 			g.fillRect(0, 0, getWidth(), getHeight());
 		}
@@ -146,13 +168,13 @@ public class BilliardsTable extends Canvas
 
 			if (captured.size() > 0) {
 				for (BilliardBall ball : captured) {
-					fireBallCapturedEvent(ball);
+					fireTableEvent(TableEventType.BALL_CAPTURED, ball);
 					
 					if (ball.getDefinition().getType() == BallType.CUE) {
-						cueBall.setLocation(new Point2D.Double(180, 260));
 						cueBall.setMovementVector(new Vector2d(0, 0));
 						cueBall.setSuspended(false);
 						uiProcessor.beginCueballPlacement();
+						fireTableEvent(TableEventType.CUE_BALL_PLACEMENT_BEGIN, cueBall);
 					} else {
 						remove(ball);
 					}
@@ -160,7 +182,7 @@ public class BilliardsTable extends Canvas
 			}
 			
 			captured.clear();
-			fireShotEndedEvent();
+			fireTableEvent(TableEventType.SHOT_ENDED);
 		}
 		
 		repaint(canvasBounds);
@@ -169,7 +191,7 @@ public class BilliardsTable extends Canvas
 	@Override
 	public void start() {
 		super.start();
-		fireShotBeginEvent();
+		fireTableEvent(TableEventType.SHOT_BEGIN);
 	}
 	
 	private void createPhysicsModel() {
@@ -221,7 +243,7 @@ public class BilliardsTable extends Canvas
 		}
 		
 		// Initialize collection for balls captured during shot
-		captured = new HashSet<BilliardBall>();
+		captured = new ArrayList<BilliardBall>();
 	}
 	
 	/*
@@ -254,29 +276,15 @@ public class BilliardsTable extends Canvas
 	}
 	
 	/*
-	 * Ball Captured Event
+	 * Fire table event
 	 */
-	private void fireBallCapturedEvent(BilliardBall b) {
-		for (TableEventListener listener : eventListeners.get(TableEventType.BALL_CAPTURED)) {
-			listener.fire(new TableEvent(TableEventType.BALL_CAPTURED, b));
-		}
+	protected void fireTableEvent(TableEventType type) {
+		fireTableEvent(type, null);
 	}
 	
-	/*
-	 * Beginning shot event
-	 */
-	private void fireShotBeginEvent() {
-		for (TableEventListener listener : eventListeners.get(TableEventType.SHOT_BEGIN)) {
-			listener.fire(new TableEvent(TableEventType.SHOT_BEGIN, null));
-		}
-	}
-	
-	/*
-	 * End shot event
-	 */
-	private void fireShotEndedEvent() {
-		for (TableEventListener listener : eventListeners.get(TableEventType.SHOT_ENDED)) {
-			listener.fire(new TableEvent(TableEventType.SHOT_ENDED, null));
+	protected void fireTableEvent(TableEventType type, BilliardBall b) {
+		for (TableEventListener listener : eventListeners.get(type)) {
+			listener.fire(new TableEvent(type, b));
 		}
 	}
 }

@@ -1,7 +1,10 @@
 package eightball.events;
 
 public enum TableEventType {
+	CUE_BALL_PLACEMENT_BEGIN,
+	CUE_BALL_PLACEMENT_END,
 	SHOT_BEGIN, 
 	SHOT_ENDED,
-	BALL_CAPTURED
+	BALL_CAPTURED,
+	REQUEST_PAUSE
 }

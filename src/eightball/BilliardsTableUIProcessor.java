@@ -128,6 +128,11 @@ public class BilliardsTableUIProcessor implements MouseMotionListener, MouseList
 		
 	private void handleEscapeKey() {
 		switch (state) {
+			case STATE_NONE:
+			case STATE_PLACE_CUE_BALL:
+				table.requestPause();
+				break;
+			
 			case STATE_SELECT_CUE_STICK_ANGLE:
 				state = STATE_NONE;
 				break;
@@ -146,7 +151,7 @@ public class BilliardsTableUIProcessor implements MouseMotionListener, MouseList
 			table.repaint();
 		}
 		
-		else if (state == STATE_PLACE_CUE_BALL) {
+		else if (state == STATE_PLACE_CUE_BALL && !table.isPaused()) {
 			Dimension size = cueBall.getSize();
 			int x = (int)(e.getX() - ((float)size.width/2F));
 			int y = (int)(e.getY() - ((float)size.height/2F));
@@ -198,6 +203,8 @@ public class BilliardsTableUIProcessor implements MouseMotionListener, MouseList
 				} else {
 					JOptionPane.showMessageDialog(table, "You must place the cueball within the bounds indicated by the dotted line");
 				}
+				
+				table.fireTableEvent(TableEventType.CUE_BALL_PLACEMENT_END, cueBall);
 				table.repaint();
 				break;
 		}

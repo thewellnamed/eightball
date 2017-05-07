@@ -117,6 +117,7 @@ public class BilliardBall extends CanvasObject
 		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		
 		switch (ball.getType()) {
+			case NONE:				
 			case CUE:
 				g.setColor(ball.getColor());
 				g.fill(outline);
