@@ -227,7 +227,6 @@ public class BilliardsTableUIProcessor implements MouseMotionListener, MouseList
 				Vector2d shotVector = getShotNormalVector();
 				shotVector.scale(-shotPower);
 				cueBall.setMovementVector(shotVector);
-				table.repaint();
 				table.start();
 				break;
 				
